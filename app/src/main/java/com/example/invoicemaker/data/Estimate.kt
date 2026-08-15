@@ -15,7 +15,7 @@ data class Estimate(
     val id: Long = 0,
     val estimateNumber: String,             // e.g. "EST-0001"
     val clientId: Long,
-    val lineItems: List<LineItem> = emptyList(),
+    val lineItems: List<EstimateLine> = emptyList(),
     val status: EstimateStatus = EstimateStatus.DRAFT,
     val issueDate: Long,
     val expiryDate: Long,
