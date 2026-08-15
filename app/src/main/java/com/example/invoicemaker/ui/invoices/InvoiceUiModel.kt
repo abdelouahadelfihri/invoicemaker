@@ -1,8 +1,8 @@
 package com.example.invoicemaker.ui.invoices
 
-import com.yourpackage.metalconstructions.data.Client
-import com.yourpackage.metalconstructions.data.Invoice
-import com.yourpackage.metalconstructions.data.InvoiceStatus
+import com.example.invoicemaker.data.Client
+import com.example.invoicemaker.data.Invoice
+import com.example.invoicemaker.data.InvoiceStatus
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
