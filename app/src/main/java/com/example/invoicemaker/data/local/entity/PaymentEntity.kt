@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.math.BigDecimal
 
 @Entity(
     tableName = "payments",
@@ -20,9 +21,8 @@ import androidx.room.PrimaryKey
 data class PaymentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val invoiceId: Long,
-    val amount: Double,
-    val date: Long = System.currentTimeMillis(),
-    val method: String = "CASH",       // CASH, BANK_TRANSFER, CARD, CHECK, OTHER
-    val reference: String? = null,     // transaction id / check number
-    val notes: String? = null
+    val amount: BigDecimal,
+    val date: Long,
+    val method: String? = null,
+    val note: String? = null
 )
