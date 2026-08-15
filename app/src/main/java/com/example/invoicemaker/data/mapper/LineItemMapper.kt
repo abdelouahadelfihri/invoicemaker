@@ -3,7 +3,6 @@ package com.example.invoicemaker.data.mapper
 
 import com.example.invoicemaker.data.local.entity.InvoiceItemEntity
 import com.example.invoicemaker.data.local.entity.EstimateItemEntity
-import com.example.invoicemaker.data.LineItem
 
 fun InvoiceItemEntity.toUiModel(currencySymbol: String): LineItem = LineItem(
     id = id,
