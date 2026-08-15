@@ -4,5 +4,6 @@ enum class InvoiceStatus(val label: String) {
     UNPAID("Unpaid"),
     PARTIALLY_PAID("Partially Paid"),
     OVERDUE("Overdue"),
-    PAID("Paid")
+    PAID("Paid"),
+    CANCELLED("Cancelled")
 }
