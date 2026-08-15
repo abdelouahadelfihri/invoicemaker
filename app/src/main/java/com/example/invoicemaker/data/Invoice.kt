@@ -1,5 +1,6 @@
 package com.yourpackage.metalconstructions.data
 
+import com.example.invoicemaker.data.InvoiceLine
 import java.math.BigDecimal
 
 enum class InvoiceStatus(val label: String) {
@@ -23,7 +24,7 @@ data class Invoice(
     val id: Long = 0,
     val invoiceNumber: String,              // e.g. "INV-0001"
     val clientId: Long,
-    val lineItems: List<LineItem> = emptyList(),
+    val lineItems: List<InvoiceLine> = emptyList(),
     val payments: List<Payment> = emptyList(),
     val status: InvoiceStatus = InvoiceStatus.UNPAID,
     val issueDate: Long,
