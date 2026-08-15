@@ -1,12 +1,16 @@
-package com.example.invoicemaker.ui.invoices
+package com.example.invoicemaker.ui.estimates
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
@@ -16,26 +20,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.invoicemaker.data.Invoice
 import com.example.invoicemaker.data.InvoiceStatus
-import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.rememberScrollState
+import com.example.invoicemaker.ui.components.BobbingHint
+import com.example.invoicemaker.ui.components.EmptyState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InvoicesScreen(navController: NavController) {
-
+fun InvoicesScreen(
+    navController: NavController,
+    viewModel: InvoicesViewModel = viewModel()
+) {
     var selectedFilter by remember { mutableStateOf<InvoiceStatus?>(null) } // null = "All"
 
-    // TODO: replace with real data from InvoicesViewModel / DBAdapter
-    val invoices = remember { sampleInvoices() }
+    // TODO: replace with real StateFlow/LiveData collection from InvoicesViewModel
+    val allInvoices: List<InvoiceUiModel> = viewModel.invoices.collectAsState(initial = emptyList()).value
 
     val filteredInvoices = if (selectedFilter == null) {
-        invoices
+        allInvoices
     } else {
-        invoices.filter { it.status == selectedFilter }
+        allInvoices.filter { it.status == selectedFilter }
     }
 
     Scaffold(
@@ -56,8 +61,16 @@ fun InvoicesScreen(navController: NavController) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { /* TODO: navigate to Add Invoice screen */ }) {
-                Icon(Icons.Default.Add, contentDescription = "Add Invoice")
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (filteredInvoices.isEmpty()) {
+                    BobbingHint(text = "Add your first invoice")
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+                FloatingActionButton(onClick = {
+                    // TODO: navController.navigate("add_invoice")
+                }) {
+                    Icon(Icons.Default.Add, contentDescription = "Add Invoice")
+                }
             }
         },
         floatingActionButtonPosition = FabPosition.End
@@ -69,14 +82,23 @@ fun InvoicesScreen(navController: NavController) {
                 onSelect = { selectedFilter = it }
             )
 
-            LazyColumn(
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                items(filteredInvoices, key = { it.id }) { invoice ->
-                    InvoiceListItem(invoice = invoice, onClick = {
-                        // TODO: navController.navigate("invoice_detail/${invoice.id}")
-                    })
+            if (filteredInvoices.isEmpty()) {
+                EmptyState(
+                    icon = Icons.Default.ReceiptLong,
+                    itemName = "invoice",
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                LazyColumn(
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(filteredInvoices, key = { it.id }) { invoice ->
+                        InvoiceListItem(invoice = invoice, onClick = {
+                            // TODO: navController.navigate("invoice_detail/${invoice.id}")
+                        })
+                    }
                 }
             }
         }
@@ -114,7 +136,7 @@ fun StatusFilterRow(
 }
 
 @Composable
-fun InvoiceListItem(invoice: Invoice, onClick: () -> Unit) {
+fun InvoiceListItem(invoice: InvoiceUiModel, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -136,7 +158,7 @@ fun InvoiceListItem(invoice: Invoice, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = invoice.amount,
+                    text = invoice.amountFormatted,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -162,7 +184,7 @@ fun InvoiceListItem(invoice: Invoice, onClick: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = invoice.issueDate,
+                    text = invoice.issueDateFormatted,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -180,6 +202,7 @@ fun StatusBadge(status: InvoiceStatus) {
         InvoiceStatus.PARTIALLY_PAID -> Color(0xFFD9EDF7) to Color(0xFF31708F)
         InvoiceStatus.OVERDUE -> Color(0xFFF8D7DA) to Color(0xFF721C24)
         InvoiceStatus.PAID -> Color(0xFFD4EDDA) to Color(0xFF155724)
+        InvoiceStatus.CANCELLED -> Color(0xFFE2E3E5) to Color(0xFF383D41)
     }
 
     Box(
@@ -195,11 +218,3 @@ fun StatusBadge(status: InvoiceStatus) {
         )
     }
 }
-
-// Sample data — remove once wired to DBAdapter/ViewModel
-fun sampleInvoices(): List<Invoice> = listOf(
-    Invoice(1, "INV-0001", "Ahmed Bennani", "1,250.00 MAD", "Due in 7 days", "12 Jul 2026", InvoiceStatus.UNPAID),
-    Invoice(2, "INV-0002", "Sara El Amrani", "3,800.00 MAD", "Overdue by 3 days", "01 Jul 2026", InvoiceStatus.OVERDUE),
-    Invoice(3, "INV-0003", "Karim Idrissi", "980.00 MAD", "Paid on 10 Jul", "05 Jul 2026", InvoiceStatus.PAID),
-    Invoice(4, "INV-0004", "Yasmine Alaoui", "2,150.00 MAD", "Due in 3 days", "15 Jul 2026", InvoiceStatus.PARTIALLY_PAID)
-)
