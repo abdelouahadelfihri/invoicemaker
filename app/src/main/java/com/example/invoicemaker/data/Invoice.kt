@@ -1,4 +1,4 @@
-
+package com.example.invoicemaker.data
 
 data class Invoice(
     val id: Long,
