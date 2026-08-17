@@ -1,4 +1,4 @@
-package com.example.invoicemaker.ui.invoices
+package com.example.invoicemaker.ui.screens.invoices
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +12,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.invoicemaker.ui.screens.documentform.GroupCard
+import com.example.invoicemaker.ui.screens.documentform.GroupRow
+import com.example.invoicemaker.ui.screens.documentform.GroupDivider
+import com.example.invoicemaker.ui.screens.documentform.TemplateThumbnail
+import com.example.invoicemaker.ui.screens.documentform.AddableLineRow
+import com.yourapp.ui.documentform.ItemsAndTotalsSection
 
 /**
  * State holder for the Add Invoice screen. Wire this up to your ViewModel;

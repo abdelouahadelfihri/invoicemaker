@@ -1,4 +1,4 @@
-package com.example.invoicemaker.ui.invoices
+package com.example.invoicemaker.ui.screens.invoices
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -9,6 +9,7 @@ import com.yourpackage.invoicemaker.data.repository.ClientRepository
 import com.yourpackage.invoicemaker.data.repository.InvoiceRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlin.text.get
 
 class InvoicesViewModel(application: Application) : AndroidViewModel(application) {
 

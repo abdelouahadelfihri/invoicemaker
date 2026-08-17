@@ -1,4 +1,4 @@
-package com.example.invoicemaker.ui.invoices
+package com.example.invoicemaker.ui.screens.invoices
 
 import com.example.invoicemaker.data.Client
 import com.example.invoicemaker.data.Invoice

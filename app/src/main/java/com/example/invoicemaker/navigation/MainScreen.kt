@@ -6,7 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.invoicemaker.ui.invoices.InvoicesScreen
+import com.example.invoicemaker.ui.screens.invoices.InvoicesScreen
 import com.yourpackage.metalconstructions.ui.estimates.EstimatesScreen
 import com.yourpackage.metalconstructions.ui.clients.ClientsScreen
 import com.yourpackage.metalconstructions.ui.items.ItemsScreen

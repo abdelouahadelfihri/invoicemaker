@@ -1,4 +1,4 @@
-package com.example.invoicemaker.ui.documentform
+package com.example.invoicemaker.ui.screens.documentform
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -138,7 +139,7 @@ fun AddableLineRow(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(text = label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        OutlinedButton(onClick = onAddClick, contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 4.dp)) {
+        OutlinedButton(onClick = onAddClick, contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)) {
             Text("Add", fontSize = 13.sp)
         }
     }
