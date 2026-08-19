@@ -5,12 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.yourpackage.invoicemaker.data.local.dao.ClientDao
-import com.yourpackage.invoicemaker.data.local.dao.InvoiceDao
-import com.yourpackage.invoicemaker.data.local.entity.ClientEntity
-import com.yourpackage.invoicemaker.data.local.entity.InvoiceEntity
-import com.yourpackage.invoicemaker.data.local.entity.InvoiceLineEntity
-import com.yourpackage.invoicemaker.data.local.entity.PaymentEntity
+import com.example.invoicemaker.data.local.dao.ClientDao
+import com.example.invoicemaker.data.local.dao.InvoiceDao
+import com.example.invoicemaker.data.local.entity.ClientEntity
+import com.example.invoicemaker.data.local.entity.InvoiceEntity
+import com.example.invoicemaker.data.local.entity.InvoiceLineEntity
+import com.example.invoicemaker.data.local.entity.PaymentEntity
 
 @Database(
     entities = [
