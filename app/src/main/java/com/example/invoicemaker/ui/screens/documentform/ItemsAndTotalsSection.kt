@@ -1,4 +1,4 @@
-package com.yourapp.ui.documentform
+package com.example.invoicemaker.ui.screens.documentform
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
