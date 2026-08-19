@@ -6,6 +6,7 @@ import com.yourpackage.invoicemaker.data.local.entity.InvoiceEntity
 import com.yourpackage.invoicemaker.data.local.entity.InvoiceLineEntity
 import com.yourpackage.invoicemaker.data.local.entity.PaymentEntity
 import com.yourpackage.invoicemaker.data.local.relation.InvoiceWithDetails
+import com.yourpackage.metalconstructions.data.Invoice
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
