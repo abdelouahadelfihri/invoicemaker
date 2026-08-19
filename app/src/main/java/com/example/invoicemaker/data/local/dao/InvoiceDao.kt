@@ -1,44 +1,33 @@
 package com.example.invoicemaker.data.local.dao
 
-import androidx.room.*
-import com.yourpackage.invoicemaker.data.local.entity.InvoiceEntity
-import com.yourpackage.invoicemaker.data.local.entity.InvoiceLineEntity
-import com.yourpackage.invoicemaker.data.local.entity.PaymentEntity
-import com.yourpackage.invoicemaker.data.local.relation.InvoiceWithDetails
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import androidx.room.Update
+import com.example.invoicemaker.data.local.entity.InvoiceEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface InvoiceDao {
 
-    @Transaction
-    @Query("SELECT * FROM invoices ORDER BY issueDate DESC")
-    fun getAllInvoicesWithDetails(): Flow<List<InvoiceWithDetails>>
+    // --- Add this query alongside whatever you already have ---
+    // Gets the most recently created invoice's number so the repository
+    // can compute the next one. Ordering by id (autoGenerate) is safer
+    // than parsing/sorting the string invoiceNumber itself.
+    @Query("SELECT invoiceNumber FROM invoices ORDER BY id DESC LIMIT 1")
+    suspend fun getLastInvoiceNumber(): String?
 
-    @Transaction
-    @Query("SELECT * FROM invoices WHERE id = :invoiceId")
-    fun getInvoiceWithDetails(invoiceId: Long): Flow<InvoiceWithDetails?>
+    // --- Your existing CRUD, kept here for context ---
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertInvoice(invoice: InvoiceEntity): Long
+    @Query("SELECT * FROM invoices ORDER BY id DESC")
+    fun observeAll(): Flow<List<InvoiceEntity>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertLines(lines: List<InvoiceLineEntity>)
+    @Query("SELECT * FROM invoices WHERE id = :id")
+    suspend fun getById(id: Long): InvoiceEntity?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPayment(payment: PaymentEntity)
+    @Insert
+    suspend fun insert(invoice: InvoiceEntity): Long
 
     @Update
-    suspend fun updateInvoice(invoice: InvoiceEntity)
-
-    @Query("UPDATE invoices SET status = :status WHERE id = :invoiceId")
-    suspend fun updateStatus(invoiceId: Long, status: String)
-
-    @Delete
-    suspend fun deleteInvoice(invoice: InvoiceEntity)
-
-    @Query("DELETE FROM invoices WHERE id = :invoiceId")
-    suspend fun deleteInvoiceById(invoiceId: Long)
-
-    @Query("DELETE FROM invoice_lines WHERE invoiceId = :invoiceId")
-    suspend fun deleteLinesForInvoice(invoiceId: Long)
+    suspend fun update(invoice: InvoiceEntity)
 }
