@@ -1,4 +1,4 @@
-package com.yourapp.ui.documentform
+package com.example.invoicemaker.ui.screens.estimates
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -15,7 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.invoicemaker.ui.screens.documentform.GroupDivider
+import com.example.invoicemaker.ui.screens.documentform.GroupRow
+import com.example.invoicemaker.ui.screens.documentform.GroupCard
+import com.example.invoicemaker.ui.screens.documentform.PreviewSaveBar
+import com.example.invoicemaker.ui.screens.documentform.ItemsAndTotalsSection
+import com.example.invoicemaker.ui.screens.documentform.TemplateThumbnail
 
 /**
  * Edit screen for an existing estimate. Same layout as AddEstimateScreen -
@@ -23,6 +31,7 @@ import androidx.compose.ui.unit.dp
  * estimate being edited. Differences from the add screen: "Edit estimate"
  * title, a delete action in the top bar, and "Update" instead of "Save".
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateEstimateScreen(
     state: EstimateFormState,
@@ -139,4 +148,44 @@ fun UpdateEstimateScreen(
             PreviewSaveBar(onPreview = onPreview, onSave = onUpdate, saveLabel = "Update")
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun UpdateEstimateScreenPreview() {
+    UpdateEstimateScreen(
+        state = EstimateFormState(
+            templateName = "Modern template",
+            issueDate = "Aug 29, 2026",
+            validUntilDate = "Sep 29, 2026",
+            estimateNumber = "EST00123",
+            businessInfo = "Orange Business Services",
+            clientName = "Acme Corp",
+            subtotal = "1,250.00",
+            currency = "USD",
+            signature = "Signed",
+            termsSet = true,
+            note = "Thank you for your business",
+            status = "Sent",
+            attachmentCount = 2
+        ),
+        onTemplateClick = {},
+        onLanguageClick = {},
+        onEstimateInfoClick = {},
+        onBusinessInfoClick = {},
+        onBillToClick = {},
+        onAddItemClick = {},
+        onAddDiscountClick = {},
+        onAddTaxClick = {},
+        onAddShippingClick = {},
+        onCurrencyClick = {},
+        onSignatureClick = {},
+        onTermsClick = {},
+        onNoteClick = {},
+        onMarkAsClick = {},
+        onAttachmentAddClick = {},
+        onPreview = {},
+        onUpdate = {},
+        onDelete = {}
+    )
 }

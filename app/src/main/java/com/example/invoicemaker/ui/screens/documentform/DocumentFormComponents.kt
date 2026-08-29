@@ -146,11 +146,13 @@ fun AddableLineRow(
 }
 
 /** Bottom action bar: Preview (outlined, left) and Save (filled, right). */
+/** Bottom action bar: Preview (outlined, left) and Save (filled, right). */
 @Composable
 fun PreviewSaveBar(
     onPreview: () -> Unit,
     onSave: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    saveLabel: String = "Save"
 ) {
     Row(
         modifier = modifier
@@ -162,7 +164,7 @@ fun PreviewSaveBar(
             Text("Preview")
         }
         Button(onClick = onSave, modifier = Modifier.weight(1f)) {
-            Text("Save")
+            Text(saveLabel)
         }
     }
 }

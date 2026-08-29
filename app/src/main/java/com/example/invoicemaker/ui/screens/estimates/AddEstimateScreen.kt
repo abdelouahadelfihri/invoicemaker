@@ -1,4 +1,4 @@
-package com.yourapp.ui.documentform
+package com.example.invoicemaker.ui.screens.estimates
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -6,12 +6,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.invoicemaker.ui.screens.documentform.GroupDivider
+import com.example.invoicemaker.ui.screens.documentform.GroupRow
+import com.example.invoicemaker.ui.screens.documentform.GroupCard
+import androidx.compose.material3.TopAppBar
+import com.example.invoicemaker.ui.screens.documentform.ItemsAndTotalsSection
+import com.example.invoicemaker.ui.screens.documentform.PreviewSaveBar
+import com.example.invoicemaker.ui.screens.documentform.TemplateThumbnail
 
 /**
  * State holder for the Add Estimate screen. Same shape as InvoiceFormState,
@@ -37,6 +46,7 @@ data class EstimateFormState(
     val attachmentCount: Int = 0
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEstimateScreen(
     state: EstimateFormState,
@@ -149,4 +159,43 @@ fun AddEstimateScreen(
             PreviewSaveBar(onPreview = onPreview, onSave = onSave)
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun AddEstimateScreenPreview() {
+    AddEstimateScreen(
+        state = EstimateFormState(
+            templateName = "Modern template",
+            issueDate = "Aug 29, 2026",
+            validUntilDate = "Sep 29, 2026",
+            estimateNumber = "EST00123",
+            businessInfo = "Orange Business Services",
+            clientName = "Acme Corp",
+            subtotal = "1,250.00",
+            currency = "USD",
+            signature = "Signed",
+            termsSet = true,
+            note = "Thank you for your business",
+            status = "Sent",
+            attachmentCount = 2
+        ),
+        onTemplateClick = {},
+        onLanguageClick = {},
+        onEstimateInfoClick = {},
+        onBusinessInfoClick = {},
+        onBillToClick = {},
+        onAddItemClick = {},
+        onAddDiscountClick = {},
+        onAddTaxClick = {},
+        onAddShippingClick = {},
+        onCurrencyClick = {},
+        onSignatureClick = {},
+        onTermsClick = {},
+        onNoteClick = {},
+        onMarkAsClick = {},
+        onAttachmentAddClick = {},
+        onPreview = {},
+        onSave = {}
+    )
 }
