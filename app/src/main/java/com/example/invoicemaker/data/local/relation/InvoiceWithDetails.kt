@@ -2,10 +2,10 @@ package com.example.invoicemaker.data.local.relation
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.yourpackage.invoicemaker.data.local.entity.ClientEntity
-import com.yourpackage.invoicemaker.data.local.entity.InvoiceEntity
-import com.yourpackage.invoicemaker.data.local.entity.InvoiceLineEntity
-import com.yourpackage.invoicemaker.data.local.entity.PaymentEntity
+import com.example.invoicemaker.data.local.entity.ClientEntity
+import com.example.invoicemaker.data.local.entity.InvoiceEntity
+import com.example.invoicemaker.data.local.entity.InvoiceLineEntity
+import com.example.invoicemaker.data.local.entity.PaymentEntity
 
 data class InvoiceWithDetails(
     @Embedded val invoice: InvoiceEntity,
