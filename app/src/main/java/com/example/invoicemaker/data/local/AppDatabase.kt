@@ -11,7 +11,7 @@ import com.example.invoicemaker.data.local.entity.ClientEntity
 import com.example.invoicemaker.data.local.entity.EstimateEntity
 import com.example.invoicemaker.data.local.entity.EstimateItemEntity
 import com.example.invoicemaker.data.local.entity.InvoiceEntity
-import com.example.invoicemaker.data.local.entity.InvoiceLineEntity
+import com.example.invoicemaker.data.local.entity.InvoiceItemEntity
 import com.example.invoicemaker.data.local.entity.ItemEntity
 import com.example.invoicemaker.data.local.entity.PaymentEntity
 
@@ -19,7 +19,7 @@ import com.example.invoicemaker.data.local.entity.PaymentEntity
     entities = [
         ClientEntity::class,
         InvoiceEntity::class,
-        InvoiceLineEntity::class,
+        InvoiceItemEntity::class,
         PaymentEntity::class,
         EstimateEntity::class,
         EstimateItemEntity::class,
