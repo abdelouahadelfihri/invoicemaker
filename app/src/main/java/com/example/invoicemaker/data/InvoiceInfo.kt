@@ -56,15 +56,15 @@ import androidx.compose.material3.OutlinedTextField
 import com.example.invoicemaker.data.BusinessInfo
 
 data class InvoiceInfo(
-    val invoiceNumber: String,
-    val issueDate: Long,
-    val dueTerms: String,
-    val dueDate: Long,
-    val poNumber: String,
-    val invoiceTitle: String,
-    val invoiceNumberLabel: String,
-    val invoiceToLabel: String
-){
+    val invoiceNumber: String = "",
+    val issueDate: Long = 0L,
+    val dueTerms: String = "",
+    val dueDate: Long = 0L,
+    val poNumber: String = "",
+    val invoiceTitle: String = "Invoice",
+    val invoiceNumberLabel: String = "INVOICE #",
+    val invoiceToLabel: String = "BILL TO"
+) {
     companion object {
         val Empty = InvoiceInfo()
     }
