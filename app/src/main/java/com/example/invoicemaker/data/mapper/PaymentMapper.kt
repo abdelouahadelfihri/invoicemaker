@@ -1,4 +1,3 @@
-// data/mapper/PaymentMapper.kt
 package com.example.invoicemaker.data.mapper
 
 import com.example.invoicemaker.data.local.entity.PaymentEntity
@@ -14,10 +13,11 @@ private val methodLabels = mapOf(
     "OTHER" to "Other"
 )
 
-fun PaymentEntity.toUiModel(currencySymbol: String): Payment = Payment(
+fun PaymentEntity.toUiModel(): Payment = Payment(
     id = id,
-    amount = "%,.2f %s".format(amount, currencySymbol),
-    date = SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(date)),
-    method = methodLabels[method] ?: method,
-    reference = reference
+    invoiceId = invoiceId,
+    amount = amount,
+    date = date,
+    method = method,
+    note = note
 )
