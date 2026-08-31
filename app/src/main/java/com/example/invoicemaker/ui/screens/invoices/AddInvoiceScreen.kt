@@ -17,10 +17,9 @@ import com.example.invoicemaker.ui.screens.documentform.GroupCard
 import com.example.invoicemaker.ui.screens.documentform.GroupRow
 import com.example.invoicemaker.ui.screens.documentform.GroupDivider
 import com.example.invoicemaker.ui.screens.documentform.TemplateThumbnail
-import com.example.invoicemaker.ui.screens.documentform.AddableLineRow
 import com.example.invoicemaker.ui.screens.documentform.ItemsAndTotalsSection
 import com.example.invoicemaker.ui.screens.documentform.PreviewSaveBar
-import com.yourapp.ui.documentform.ItemsAndTotalsSection
+import com.example.invoicemaker.ui.screens.documentform.ItemsAndTotalsSection
 
 /**
  * State holder for the Add Invoice screen. Wire this up to your ViewModel;
