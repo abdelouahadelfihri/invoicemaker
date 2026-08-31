@@ -19,6 +19,7 @@ import com.example.invoicemaker.ui.screens.documentform.GroupDivider
 import com.example.invoicemaker.ui.screens.documentform.TemplateThumbnail
 import com.example.invoicemaker.ui.screens.documentform.ItemsAndTotalsSection
 import com.example.invoicemaker.ui.screens.documentform.PreviewSaveBar
+import androidx.compose.ui.tooling.preview.Preview
 
 /**
  * State holder for the Add Invoice screen. Wire this up to your ViewModel;
@@ -159,4 +160,32 @@ fun AddInvoiceScreen(
             PreviewSaveBar(onPreview = onPreview, onSave = onSave)
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview(showBackground = true)
+@Composable
+fun AddInvoiceScreenPreview() {
+    AddInvoiceScreen(
+        state = InvoiceFormState(),
+        onTemplateClick = {},
+        onLanguageClick = {},
+        onInvoiceInfoClick = {},
+        onBusinessInfoClick = {},
+        onBillToClick = {},
+        onAddItemClick = {},
+        onAddDiscountClick = {},
+        onAddTaxClick = {},
+        onAddShippingClick = {},
+        onAddAdvancePaidClick = {},
+        onCurrencyClick = {},
+        onSignatureClick = {},
+        onTermsClick = {},
+        onPaymentMethodClick = {},
+        onNoteClick = {},
+        onMarkAsClick = {},
+        onAttachmentAddClick = {},
+        onPreview = {},
+        onSave = {}
+    )
 }
