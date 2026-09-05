@@ -7,10 +7,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.invoicemaker.ui.screens.invoices.InvoicesScreen
-import com.yourpackage.metalconstructions.ui.estimates.EstimatesScreen
-import com.yourpackage.metalconstructions.ui.clients.ClientsScreen
-import com.yourpackage.metalconstructions.ui.items.ItemsScreen
-import com.yourpackage.metalconstructions.ui.more.MoreScreen
+import com.example.invoicemaker.ui.screens.estimates.EstimatesScreen
+import com.example.invoicemaker.ui.screens.clients.ClientsScreen
+import com.example.invoicemaker.ui.screens.items.ItemsScreen
+import com.example.invoicemaker.ui.screens.more.MoreScreen
 
 @Composable
 fun MainScreen() {

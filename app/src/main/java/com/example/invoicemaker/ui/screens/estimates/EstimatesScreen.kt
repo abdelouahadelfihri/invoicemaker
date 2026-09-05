@@ -24,17 +24,19 @@ import androidx.navigation.NavController
 import com.example.invoicemaker.data.InvoiceStatus
 import com.example.invoicemaker.ui.components.BobbingHint
 import com.example.invoicemaker.ui.components.EmptyState
+import com.example.invoicemaker.ui.screens.estimates.EstimatesViewModel
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoicesScreen(
     navController: NavController,
-    viewModel: InvoicesViewModel = viewModel()
+    viewModel: EstimatesViewModel = viewModel()
 ) {
     var selectedFilter by remember { mutableStateOf<InvoiceStatus?>(null) } // null = "All"
 
     // TODO: replace with real StateFlow/LiveData collection from InvoicesViewModel
-    val allInvoices: List<InvoiceUiModel> = viewModel.invoices.collectAsState(initial = emptyList()).value
+    val allInvoices: List<EstimateUiModel> = viewModel..collectAsState(initial = emptyList()).value
 
     val filteredInvoices = if (selectedFilter == null) {
         allInvoices
