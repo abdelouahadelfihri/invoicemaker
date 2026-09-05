@@ -1,33 +1,47 @@
 package com.example.invoicemaker.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
-import com.example.invoicemaker.data.local.entity.InvoiceEntity
+import com.example.invoicemaker.data.local.entity.ClientEntity
 import kotlinx.coroutines.flow.Flow
+
+// ---------------------------------------------------------------------------
+// Assumes a "clients" table with at least: id, name, email, phone, address.
+// Rename the columns in the @Query strings below if your ClientEntity
+// uses different field names.
+// ---------------------------------------------------------------------------
 
 @Dao
 interface ClientDao {
 
-    // --- Add this query alongside whatever you already have ---
-    // Gets the most recently created invoice's number so the repository
-    // can compute the next one. Ordering by id (autoGenerate) is safer
-    // than parsing/sorting the string invoiceNumber itself.
-    @Query("SELECT invoiceNumber FROM invoices ORDER BY id DESC LIMIT 1")
-    suspend fun getLastInvoiceNumber(): String?
+    @Query("SELECT * FROM clients ORDER BY name ASC")
+    fun observeAll(): Flow<List<ClientEntity>>
 
-    // --- Your existing CRUD, kept here for context ---
+    @Query("SELECT * FROM clients WHERE id = :id")
+    suspend fun getById(id: Long): ClientEntity?
 
-    @Query("SELECT * FROM invoices ORDER BY id DESC")
-    fun observeAll(): Flow<List<InvoiceEntity>>
+    @Query(
+        """
+        SELECT * FROM clients
+        WHERE name LIKE '%' || :query || '%'
+           OR email LIKE '%' || :query || '%'
+        ORDER BY name ASC
+        """
+    )
+    fun observeSearch(query: String): Flow<List<ClientEntity>>
 
-    @Query("SELECT * FROM invoices WHERE id = :id")
-    suspend fun getById(id: Long): InvoiceEntity?
+    @Query("SELECT COUNT(*) FROM clients")
+    suspend fun getCount(): Int
 
     @Insert
-    suspend fun insert(invoice: InvoiceEntity): Long
+    suspend fun insert(client: ClientEntity): Long
 
     @Update
-    suspend fun update(invoice: InvoiceEntity)
+    suspend fun update(client: ClientEntity)
+
+    @Delete
+    suspend fun delete(client: ClientEntity)
 }

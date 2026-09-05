@@ -3,6 +3,8 @@ package com.example.invoicemaker.ui.screens.invoices
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.invoicemaker.data.local.AppDatabase
+import com.example.invoicemaker.data.repository.InvoiceRepository
 import com.yourpackage.invoicemaker.data.InvoiceStatus
 import com.yourpackage.invoicemaker.data.local.AppDatabase
 import com.yourpackage.invoicemaker.data.repository.ClientRepository
@@ -15,7 +17,8 @@ class InvoicesViewModel(application: Application) : AndroidViewModel(application
 
     private val db = AppDatabase.getInstance(application)
     private val invoiceRepository = InvoiceRepository(db.invoiceDao())
-    private val clientRepository = ClientRepository(db.clientDao())
+    private val clientRepository =
+        com.example.invoicemaker.ui.screens.estimates.ClientRepository(db.clientDao())
 
     val invoices: StateFlow<List<InvoiceUiModel>> =
         combine(invoiceRepository.getAllInvoices(), clientRepository.getAllClients()) { invoices, clients ->
