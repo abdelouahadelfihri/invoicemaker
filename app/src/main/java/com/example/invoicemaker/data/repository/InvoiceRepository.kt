@@ -2,16 +2,14 @@ package com.example.invoicemaker.data.repository
 
 import com.example.invoicemaker.data.local.dao.InvoiceDao
 import com.example.invoicemaker.data.local.entity.InvoiceEntity
+import com.example.invoicemaker.data.InvoiceStatus
 import kotlinx.coroutines.flow.Flow
 
 class InvoiceRepository(
     private val dao: InvoiceDao
 ) {
 
-    // --- New: powers the pre-filled "INV00002" on InvoiceInfoScreen ---
-    // Reads the last saved invoice number ("INV00001"), strips the
-    // "INV" prefix, increments, and re-pads to 5 digits.
-    // First-ever invoice (no rows yet) starts at "INV00001".
+    // --- Powers the pre-filled "INV00002" on InvoiceInfoScreen ---
     suspend fun generateNextInvoiceNumber(): String {
         val last = dao.getLastInvoiceNumber() ?: return "INV00001"
 
@@ -21,7 +19,7 @@ class InvoiceRepository(
         return "INV" + nextNumber.toString().padStart(5, '0')
     }
 
-    // --- Your existing repository methods, kept here for context ---
+    // --- Existing repository methods ---
 
     fun observeAll(): Flow<List<InvoiceEntity>> = dao.observeAll()
 
@@ -32,4 +30,16 @@ class InvoiceRepository(
             dao.update(invoice)
             invoice.id
         }
+
+    // --- New: needed by InvoicesViewModel.deleteInvoice() / markAsPaid() ---
+
+    suspend fun deleteInvoice(id: Long) {
+        dao.deleteById(id)
+    }
+
+    suspend fun updateStatus(id: Long, status: InvoiceStatus) {
+        dao.getById(id)?.let { invoice ->
+            dao.update(invoice.copy(status = status))
+        }
+    }
 }

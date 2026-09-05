@@ -1,6 +1,7 @@
 package com.example.invoicemaker.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -30,4 +31,9 @@ interface InvoiceDao {
 
     @Update
     suspend fun update(invoice: InvoiceEntity)
+
+    // --- New: needed for InvoicesViewModel.deleteInvoice() / markAsPaid() ---
+
+    @Query("DELETE FROM invoices WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
