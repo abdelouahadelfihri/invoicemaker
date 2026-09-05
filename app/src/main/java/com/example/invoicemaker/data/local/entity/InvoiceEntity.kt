@@ -2,6 +2,7 @@ package com.example.invoicemaker.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.example.invoicemaker.data.InvoiceStatus
 import java.time.LocalDate
 
 /**
@@ -25,8 +26,9 @@ data class InvoiceEntity(
     val invoiceNumberLabel: String = "INVOICE #",
     val billToLabel: String = "BILL TO",
 
-    // ---- Your existing invoice fields (client, totals, status, etc.)
-    // keep whatever you already had here — clientId, subtotal, tax,
-    // total, status, notes, createdAt, etc.
-    val clientId: Long? = null
+    // ---- Your existing invoice fields (client, totals, status, etc.) ----
+    val clientId: Long? = null,
+    val status: InvoiceStatus = InvoiceStatus.DRAFT
+    // subtotal, tax, total, notes, createdAt, etc. — keep whatever else
+    // you already had here.
 )
