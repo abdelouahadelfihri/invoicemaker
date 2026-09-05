@@ -84,8 +84,10 @@ data class EstimateDetailState(
 // ---------------------------------------------------------------------------
 
 class EstimatesViewModel(
+
     private val estimateRepository: EstimateRepository,
     private val clientRepository: ClientRepository
+
 ) : ViewModel() {
 
     // ---- LIST SCREEN -------------------------------------------------
