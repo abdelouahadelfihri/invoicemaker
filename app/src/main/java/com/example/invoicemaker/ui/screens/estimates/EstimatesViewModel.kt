@@ -34,6 +34,25 @@ val Estimate.computedStatus: EstimateStatus
     }
 
 // ---------------------------------------------------------------------------
+// Estimate -> EstimateUiModel mapping. EstimateUiModel is the data class
+// defined in EstimatesScreen.kt. If your Client class uses a different
+// property name than `name`, adjust the client?.name line below.
+// ---------------------------------------------------------------------------
+
+fun Estimate.toUiModel(client: Client?): EstimateUiModel = EstimateUiModel(
+    id = id,
+    estimateNumber = estimateNumber,
+    clientName = client?.name ?: "Unknown Client",
+    status = computedStatus,
+    issueDate = issueDate,
+    expiryDate = expiryDate,
+    itemCount = lineItems.size,
+    subtotal = subtotal,
+    totalTax = totalTax,
+    total = total
+)
+
+// ---------------------------------------------------------------------------
 // Repository contracts — implement against your Room DAO.
 // Persisting lineItems (embedded list) alongside the Estimate row is an
 // implementation detail of insertEstimate/updateEstimate (e.g. a TypeConverter,
