@@ -1,4 +1,3 @@
-// com.example.invoicemaker.data.local.entity.BusinessInfoEntity.kt
 package com.example.invoicemaker.data.local.entity
 
 import androidx.room.Entity

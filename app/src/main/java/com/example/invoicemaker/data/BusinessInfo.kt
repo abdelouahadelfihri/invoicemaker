@@ -6,6 +6,7 @@ package com.example.invoicemaker.data
  * Kept separate from BusinessInfoEntity so screens/ViewModels never
  * depend on Room directly.
  */
+
 data class BusinessInfo(
     val businessName: String = "",
     val email: String = "",
