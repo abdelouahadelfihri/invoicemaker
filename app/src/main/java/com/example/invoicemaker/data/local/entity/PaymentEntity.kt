@@ -18,6 +18,7 @@ import androidx.room.PrimaryKey
     ],
     indices = [Index("invoiceId")]
 )
+
 data class PaymentEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val invoiceId: Long,
