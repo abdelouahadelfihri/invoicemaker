@@ -54,7 +54,7 @@ class ClientsViewModel(
 
     /** Drives `viewModel.clients.collectAsState(initial = emptyList())` in Compose. */
     val clients: StateFlow<List<Client>> = combine(
-        clientRepository.getAllClientsFlow(),
+        clientRepository.observeAll(),
         _filter
     ) { clientList, filter ->
         clientList
@@ -97,7 +97,7 @@ class ClientsViewModel(
         viewModelScope.launch {
             _detailState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val client = clientRepository.getClientById(id)
+                val client = clientRepository.getById(id)
                 _detailState.update { it.copy(client = client, isLoading = false) }
             } catch (e: Exception) {
                 _detailState.update {
