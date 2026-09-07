@@ -15,18 +15,7 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-
-// ---------------------------------------------------------------------------
-// Repository contract — implement against your Room DAO.
-// ---------------------------------------------------------------------------
-
-interface ClientDomainRepository {
-    fun getAllClientsFlow(): Flow<List<Client>>
-    suspend fun getClientById(id: Long): Client?
-    suspend fun insertClient(client: Client): Long
-    suspend fun updateClient(client: Client)
-    suspend fun deleteClient(clientId: Long)
-}
+import com.example.invoicemaker.data.repository.ClientRepository
 
 // ---------------------------------------------------------------------------
 // List screen filter/sort options
