@@ -1,12 +1,7 @@
-package com.example.invoicemaker.data.local.entity
+package com.example.invoicemaker.data.local.mapper
 
 import com.example.invoicemaker.data.Client
-
-// ---------------------------------------------------------------------------
-// Add this extension function in ClientEntity.kt (or a mappers file).
-// Assumes ClientEntity mirrors Client's fields exactly. If your ClientEntity
-// has different field names, adjust the right-hand side accordingly.
-// ---------------------------------------------------------------------------
+import com.example.invoicemaker.data.local.entity.ClientEntity
 
 fun ClientEntity.toDomain(): Client = Client(
     id = id,

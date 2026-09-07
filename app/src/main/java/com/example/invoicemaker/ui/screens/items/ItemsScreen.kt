@@ -18,14 +18,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// Simple item model — replace with your Room entity if you already have one
-data class Item(
-    val id: Long,
-    val name: String,
-    val price: Double? = null,
-    val unit: String? = null
-)
+import com.example.invoicemaker.data.Item
+import com.example.invoicemaker.data.ItemUnit
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +31,9 @@ fun ItemsScreen(
     onDeleteClick: () -> Unit,
     onItemClick: (Item) -> Unit = {}
 ) {
+    // Only show active items on the main list — isActive is a soft-delete flag
+    val visibleItems = items.filter { it.isActive }
+
     Scaffold(
         topBar = {
             ItemsTopBar(
@@ -57,11 +55,11 @@ fun ItemsScreen(
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        if (items.isEmpty()) {
+        if (visibleItems.isEmpty()) {
             EmptyItemsState(modifier = Modifier.padding(innerPadding))
         } else {
             ItemsList(
-                items = items,
+                items = visibleItems,
                 onItemClick = onItemClick,
                 modifier = Modifier.padding(innerPadding)
             )
@@ -164,20 +162,23 @@ private fun ItemRow(item: Item, onClick: () -> Unit) {
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.name, fontWeight = FontWeight.Medium)
-                item.unit?.let {
+                Text(
+                    text = item.unit.label,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                item.sku?.let {
                     Text(
-                        text = it,
-                        fontSize = 13.sp,
+                        text = "SKU: $it",
+                        fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            item.price?.let {
-                Text(
-                    text = "%.2f".format(it),
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            Text(
+                text = item.unitPrice.toPlainString(),
+                fontWeight = FontWeight.Medium
+            )
         }
     }
 }
@@ -203,8 +204,19 @@ private fun ItemsScreenListPreview() {
     MaterialTheme {
         ItemsScreen(
             items = listOf(
-                Item(1, "Consulting Hour", price = 450.0, unit = "per hour"),
-                Item(2, "Installation Kit", price = 1200.0, unit = "per unit")
+                Item(
+                    id = 1,
+                    name = "Consulting Hour",
+                    unit = ItemUnit.HOUR,
+                    unitPrice = BigDecimal("450.00")
+                ),
+                Item(
+                    id = 2,
+                    name = "Installation Kit",
+                    unit = ItemUnit.UNIT,
+                    unitPrice = BigDecimal("1200.00"),
+                    sku = "KIT-001"
+                )
             ),
             onAddItem = {},
             onSearchClick = {},
