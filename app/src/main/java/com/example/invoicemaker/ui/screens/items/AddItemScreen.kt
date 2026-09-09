@@ -8,52 +8,75 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-
-/**
- * State holder for the "New Item" form.
- */
-class NewItemFormState {
-    var itemName by mutableStateOf("")
-    var itemPrice by mutableStateOf("")
-    var unitOfMeasure by mutableStateOf("")
-
-    var description by mutableStateOf("")
-}
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.invoicemaker.data.ItemUnit
+import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewItemScreen(
     onBackClick: () -> Unit,
-    onSaveClick: (NewItemFormState) -> Unit,
+    onItemSaved: (Long) -> Unit,
+    viewModel: ItemsViewModel,
     modifier: Modifier = Modifier
 ) {
-    val formState = remember { NewItemFormState() }
+    val detailState by viewModel.detailState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val item = detailState.item
+
+    // Local text buffer for the price field so the user can type freely
+    // (e.g. "12." or "12,5") before it's parsed into a BigDecimal.
+    var priceText by remember(item?.price) {
+        mutableStateOf(item?.price?.toPlainString().orEmpty())
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.startNewItem()
+    }
+
+    LaunchedEffect(detailState.errorMessage) {
+        val message = detailState.errorMessage
+        if (message != null) {
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearError()
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("New Item") },
@@ -63,6 +86,23 @@ fun NewItemScreen(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
                         )
+                    }
+                },
+                actions = {
+                    if (detailState.isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .padding(end = 16.dp)
+                                .height(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        IconButton(onClick = { viewModel.saveItem(onSaved = onItemSaved) }) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Save item"
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -78,7 +118,7 @@ fun NewItemScreen(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // --- Card 1: three text fields ---
+            // --- Card 1: three fields ---
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -93,20 +133,24 @@ fun NewItemScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         FloatingLabelTextField(
-                            value = formState.itemName,
-                            onValueChange = { formState.itemName = it },
+                            value = item?.name.orEmpty(),
+                            onValueChange = viewModel::updateName,
                             label = "Item name"
                         )
                         FloatingLabelTextField(
-                            value = formState.itemPrice,
-                            onValueChange = { formState.itemPrice = it },
+                            value = priceText,
+                            onValueChange = { text ->
+                                priceText = text
+                                text.replace(",", ".").toBigDecimalOrNull()?.let {
+                                    viewModel.updatePrice(it)
+                                } ?: viewModel.updatePrice(null)
+                            },
                             label = "Item price",
                             keyboardType = KeyboardType.Decimal
                         )
-                        FloatingLabelTextField(
-                            value = formState.unitOfMeasure,
-                            onValueChange = { formState.unitOfMeasure = it },
-                            label = "Unit of measure"
+                        UnitDropdown(
+                            selected = item?.unit,
+                            onSelected = viewModel::updateUnit
                         )
                     }
                 }
@@ -126,8 +170,8 @@ fun NewItemScreen(
                             .padding(16.dp)
                     ) {
                         FloatingLabelTextArea(
-                            value = formState.description,
-                            onValueChange = { formState.description = it },
+                            value = item?.description.orEmpty(),
+                            onValueChange = viewModel::updateDescription,
                             label = "Item description"
                         )
                     }
@@ -137,11 +181,55 @@ fun NewItemScreen(
     }
 }
 
+/** Dropdown built from the ItemUnit enum — swap the label logic if you add a display name to it. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun UnitDropdown(
+    selected: ItemUnit?,
+    onSelected: (ItemUnit) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier.fillMaxWidth()
+    ) {
+        OutlinedTextField(
+            value = selected?.name.orEmpty(),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Unit of measure") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuDefaults.PrimaryEditable)
+                .fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline
+            )
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            ItemUnit.entries.forEach { unit ->
+                DropdownMenuItem(
+                    text = { Text(unit.name) },
+                    onClick = {
+                        onSelected(unit)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
 /**
  * Single-line field whose label sits inline as a placeholder and animates
  * to the top-left the moment the field is focused (or already has text).
- * This is the default OutlinedTextField behavior in Material 3 — no
- * extra state needed.
  */
 @Composable
 private fun FloatingLabelTextField(
@@ -165,9 +253,7 @@ private fun FloatingLabelTextField(
     )
 }
 
-/**
- * Multi-line text area with the same floating-label behavior.
- */
+/** Multi-line text area with the same floating-label behavior. */
 @Composable
 private fun FloatingLabelTextArea(
     value: String,
