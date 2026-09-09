@@ -18,6 +18,8 @@ class ClientRepository(
             client.id
         }
 
+    suspend fun update(client: ClientEntity) = dao.update(client)
+
     suspend fun delete(client: ClientEntity) = dao.delete(client)
     suspend fun deleteById(id: Long) {
         getById(id)?.let { dao.delete(it) }

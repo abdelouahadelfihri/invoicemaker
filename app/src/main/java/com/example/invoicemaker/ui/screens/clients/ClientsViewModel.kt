@@ -1,9 +1,11 @@
 package com.example.invoicemaker.ui.screens.clients
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.invoicemaker.data.Client
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,10 +14,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.invoicemaker.data.repository.ClientRepository
+import com.example.invoicemaker.data.repository.ClientDomainRepository
 
 // ---------------------------------------------------------------------------
 // List screen filter/sort options
@@ -44,17 +43,18 @@ data class ClientDetailState(
 // ---------------------------------------------------------------------------
 
 class ClientsViewModel(
-    private val clientRepository: ClientRepository
+    private val clientRepository: ClientDomainRepository
 ) : ViewModel() {
 
     // ---- LIST SCREEN -------------------------------------------------
 
+    // Kept private: nothing in the UI currently reads the query/sort back,
+    // it's only used internally to drive the `clients` flow below.
     private val _filter = MutableStateFlow(ClientFilter())
-    val filter: StateFlow<ClientFilter> = _filter.asStateFlow()
 
     /** Drives `viewModel.clients.collectAsState(initial = emptyList())` in Compose. */
     val clients: StateFlow<List<Client>> = combine(
-        clientRepository.observeAll(),
+        clientRepository.getAllClientsFlow(),
         _filter
     ) { clientList, filter ->
         clientList
@@ -97,7 +97,7 @@ class ClientsViewModel(
         viewModelScope.launch {
             _detailState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val client = clientRepository.getById(id)
+                val client = clientRepository.getClientById(id)
                 _detailState.update { it.copy(client = client, isLoading = false) }
             } catch (e: Exception) {
                 _detailState.update {
