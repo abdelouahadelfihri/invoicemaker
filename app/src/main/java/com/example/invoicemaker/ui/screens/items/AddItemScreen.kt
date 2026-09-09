@@ -15,9 +15,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
@@ -58,8 +58,8 @@ fun NewItemScreen(
 
     // Local text buffer for the price field so the user can type freely
     // (e.g. "12." or "12,5") before it's parsed into a BigDecimal.
-    var priceText by remember(item?.price) {
-        mutableStateOf(item?.price?.toPlainString().orEmpty())
+    var priceText by remember(item?.unitPrice) {
+        mutableStateOf(item?.unitPrice?.toPlainString().orEmpty())
     }
 
     LaunchedEffect(Unit) {
@@ -203,14 +203,14 @@ private fun UnitDropdown(
             label = { Text("Unit of measure") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             modifier = Modifier
-                .menuAnchor(ExposedDropdownMenuDefaults.PrimaryEditable)
+                .menuAnchor()
                 .fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
             )
         )
-        ExposedDropdownMenu(
+        DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
         ) {
