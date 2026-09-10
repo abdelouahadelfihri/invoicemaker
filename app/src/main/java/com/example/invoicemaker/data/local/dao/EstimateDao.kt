@@ -25,15 +25,3 @@ interface EstimateDao {
     @Delete
     suspend fun delete(estimate: EstimateEntity)
 }
-
-@Dao
-interface EstimateItemDao {
-    @Query("SELECT * FROM estimate_items WHERE estimateId = :estimateId ORDER BY sortOrder ASC")
-    suspend fun getForEstimate(estimateId: Long): List<EstimateItemEntity>
-
-    @Insert
-    suspend fun insertAll(items: List<EstimateItemEntity>)
-
-    @Query("DELETE FROM estimate_items WHERE estimateId = :estimateId")
-    suspend fun deleteForEstimate(estimateId: Long)
-}
