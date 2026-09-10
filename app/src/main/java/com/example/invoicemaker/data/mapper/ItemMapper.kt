@@ -48,4 +48,8 @@ private fun ItemUnit.toRawString(): String = when (this) {
     ItemUnit.HOUR -> "hr"
     ItemUnit.KG -> "kg"
     ItemUnit.DAY -> "day"
+    ItemUnit.METER -> "m"
+    ItemUnit.SQUARE_METER -> "m²"
+    ItemUnit.LOT ->"lot"
+    ItemUnit.TON -> "ton"
 }

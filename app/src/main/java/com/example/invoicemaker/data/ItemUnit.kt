@@ -4,8 +4,9 @@ enum class ItemUnit(val label: String) {
     UNIT("unit"),
     METER("m"),
     SQUARE_METER("m²"),
-    KILOGRAM("kg"),
+    KG("kg"),
     TON("ton"),
     HOUR("hour"),
+    DAY("day"),
     LOT("lot")
 }
