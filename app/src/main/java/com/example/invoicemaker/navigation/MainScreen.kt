@@ -15,7 +15,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.invoicemaker.data.local.AppDatabase
 import com.example.invoicemaker.data.local.repository.RoomItemRepository
 import com.example.invoicemaker.data.repository.ClientRepository
-import com.example.invoicemaker.data.repository.ClientRepositoryAdapter
 import com.example.invoicemaker.ui.screens.clients.ClientsScreen
 import com.example.invoicemaker.ui.screens.clients.ClientsViewModel
 import com.example.invoicemaker.ui.screens.estimates.EstimatesScreen

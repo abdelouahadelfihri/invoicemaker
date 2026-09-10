@@ -29,8 +29,9 @@ data class EstimateItemEntity(
     val itemId: Long? = null,
     val description: String,
     val quantity: Double = 1.0,
+    val unit: String = "UNIT",          // NEW
     val unitPrice: Double = 0.0,
     val taxRate: Double = 0.0,
-    val lineTotal: Double = 0.0,       // quantity * unitPrice, tax applied at estimate level or here
+    val lineTotal: Double = 0.0,
     val sortOrder: Int = 0
 )
