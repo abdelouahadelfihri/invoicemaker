@@ -2,7 +2,6 @@ package com.example.invoicemaker.ui.screens.items
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -18,8 +17,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.invoicemaker.data.Item
-import com.example.invoicemaker.data.ItemUnit
 import java.math.BigDecimal
 
 @OptIn(ExperimentalMaterial3Api::class)

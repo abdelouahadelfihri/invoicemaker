@@ -1,7 +1,6 @@
 // com.example.invoicemaker.data.local.repository.RoomItemRepository.kt
 package com.example.invoicemaker.data.local.repository
 
-import com.example.invoicemaker.data.Item
 import com.example.invoicemaker.data.local.dao.ItemDao
 import com.example.invoicemaker.data.local.mapper.toDomain
 import com.example.invoicemaker.data.local.mapper.toEntity

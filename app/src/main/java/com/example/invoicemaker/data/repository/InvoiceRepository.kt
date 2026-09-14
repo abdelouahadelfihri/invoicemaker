@@ -2,7 +2,6 @@ package com.example.invoicemaker.data.repository
 
 import com.example.invoicemaker.data.local.dao.InvoiceDao
 import com.example.invoicemaker.data.local.entity.InvoiceEntity
-import com.example.invoicemaker.data.InvoiceStatus
 import kotlinx.coroutines.flow.Flow
 
 class InvoiceRepository(
