@@ -2,6 +2,7 @@ package com.example.invoicemaker.ui.screens.items
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -17,16 +18,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import java.math.BigDecimal
+import com.example.invoicemaker.data.local.entity.ItemEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemsScreen(
-    items: List<Item>,
+    items: List<ItemEntity>,
     onAddItem: () -> Unit,
     onSearchClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onItemClick: (Item) -> Unit = {}
+    onItemClick: (ItemEntity) -> Unit = {}
 ) {
     // Only show active items on the main list — isActive is a soft-delete flag
     val visibleItems = items.filter { it.isActive }
@@ -122,8 +123,8 @@ private fun EmptyItemsState(modifier: Modifier = Modifier) {
 
 @Composable
 private fun ItemsList(
-    items: List<Item>,
-    onItemClick: (Item) -> Unit,
+    items: List<ItemEntity>,
+    onItemClick: (ItemEntity) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -140,7 +141,7 @@ private fun ItemsList(
 }
 
 @Composable
-private fun ItemRow(item: Item, onClick: () -> Unit) {
+private fun ItemRow(item: ItemEntity, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -160,7 +161,7 @@ private fun ItemRow(item: Item, onClick: () -> Unit) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(text = item.name, fontWeight = FontWeight.Medium)
                 Text(
-                    text = item.unit.label,
+                    text = item.unit,
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -173,7 +174,7 @@ private fun ItemRow(item: Item, onClick: () -> Unit) {
                 }
             }
             Text(
-                text = item.unitPrice.toPlainString(),
+                text = item.unitPrice.toString(),
                 fontWeight = FontWeight.Medium
             )
         }
@@ -201,17 +202,17 @@ private fun ItemsScreenListPreview() {
     MaterialTheme {
         ItemsScreen(
             items = listOf(
-                Item(
+                ItemEntity(
                     id = 1,
                     name = "Consulting Hour",
-                    unit = ItemUnit.HOUR,
-                    unitPrice = BigDecimal("450.00")
+                    unit = "hr",
+                    unitPrice = 450.00
                 ),
-                Item(
+                ItemEntity(
                     id = 2,
                     name = "Installation Kit",
-                    unit = ItemUnit.UNIT,
-                    unitPrice = BigDecimal("1200.00"),
+                    unit = "pcs",
+                    unitPrice = 1200.00,
                     sku = "KIT-001"
                 )
             ),
