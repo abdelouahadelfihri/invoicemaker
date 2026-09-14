@@ -1,6 +1,5 @@
 package com.example.invoicemaker.data.repository
 
-import com.example.invoicemaker.data.Client
 import kotlinx.coroutines.flow.Flow
 
 interface ClientDomainRepository {

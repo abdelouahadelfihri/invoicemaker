@@ -2,7 +2,6 @@ package com.example.invoicemaker.ui.screens.invoices
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.invoicemaker.data.Client
 import com.example.invoicemaker.data.InvoiceLine
 import com.yourpackage.metalconstructions.data.Invoice
 import com.yourpackage.metalconstructions.data.InvoiceStatus
