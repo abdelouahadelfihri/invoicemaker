@@ -17,15 +17,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.invoicemaker.data.local.entity.ClientEntity
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClientsScreen(
-    clients: List<Client>,
+    clients: List<ClientEntity>,
     onAddClient: () -> Unit,
     onSearchClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onClientClick: (Client) -> Unit = {}
+    onClientClick: (ClientEntity) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -118,8 +120,8 @@ private fun EmptyClientsState(modifier: Modifier = Modifier) {
 
 @Composable
 private fun ClientsList(
-    clients: List<Client>,
-    onClientClick: (Client) -> Unit,
+    clients: List<ClientEntity>,
+    onClientClick: (ClientEntity) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -136,7 +138,7 @@ private fun ClientsList(
 }
 
 @Composable
-private fun ClientRow(client: Client, onClick: () -> Unit) {
+private fun ClientRow(client: ClientEntity, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -188,8 +190,8 @@ private fun ClientsScreenListPreview() {
     MaterialTheme {
         ClientsScreen(
             clients = listOf(
-                Client(1, "Ahmed Bensaid", phone = "+212 6 12 34 56 78"),
-                Client(2, "Fatima Zahra", phone = "+212 6 98 76 54 32")
+                ClientEntity(id = 1, name = "Ahmed Bensaid", phone = "+212 6 12 34 56 78"),
+                ClientEntity(id = 2, name = "Fatima Zahra", phone = "+212 6 98 76 54 32")
             ),
             onAddClient = {},
             onSearchClick = {},
