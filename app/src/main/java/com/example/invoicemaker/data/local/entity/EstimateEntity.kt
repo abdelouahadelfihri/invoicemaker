@@ -1,4 +1,4 @@
-package com.example.invoicemaker.data.local
+package com.example.invoicemaker.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
