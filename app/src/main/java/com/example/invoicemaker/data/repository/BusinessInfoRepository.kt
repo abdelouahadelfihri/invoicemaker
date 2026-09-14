@@ -2,7 +2,6 @@ package com.example.invoicemaker.data.repository
 
 import com.example.invoicemaker.data.local.dao.BusinessInfoDao
 import com.example.invoicemaker.data.local.entity.BusinessInfoEntity
-import com.example.invoicemaker.data.BusinessInfo
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
