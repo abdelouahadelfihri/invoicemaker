@@ -25,7 +25,7 @@ import com.example.invoicemaker.data.local.entity.ClientEntity
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ClientsScreen(
-    clientRepository: ClientDomainRepository,
+    clientRepository: ClientRepository,
     onAddClient: () -> Unit,
     onSearchClick: () -> Unit,
     onDeleteClick: () -> Unit,
