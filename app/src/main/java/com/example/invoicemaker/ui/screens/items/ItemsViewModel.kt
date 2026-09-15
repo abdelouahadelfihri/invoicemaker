@@ -1,7 +1,11 @@
 package com.example.invoicemaker.ui.screens.items
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.invoicemaker.data.local.entity.ItemEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,20 +15,16 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.math.BigDecimal
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 
 // ---------------------------------------------------------------------------
 // Repository contract — implement against your Room DAO.
 // ---------------------------------------------------------------------------
 
 interface ItemRepository {
-    fun getAllItemsFlow(): Flow<List<Item>>
-    suspend fun getItemById(id: Long): Item?
-    suspend fun insertItem(item: Item): Long
-    suspend fun updateItem(item: Item)
+    fun getAllItemsFlow(): Flow<List<ItemEntity>>
+    suspend fun getItemById(id: Long): ItemEntity?
+    suspend fun insertItem(item: ItemEntity): Long
+    suspend fun updateItem(item: ItemEntity)
     suspend fun deleteItem(itemId: Long)
 }
 
@@ -36,7 +36,8 @@ enum class ItemSortOrder { NAME_ASC, NAME_DESC, PRICE_ASC, PRICE_DESC, NEWEST_FI
 
 data class ItemFilter(
     val query: String = "",
-    val sortOrder: ItemSortOrder = ItemSortOrder.NAME_ASC
+    val sortOrder: ItemSortOrder = ItemSortOrder.NAME_ASC,
+    val activeOnly: Boolean = true
 )
 
 // ---------------------------------------------------------------------------
@@ -44,7 +45,7 @@ data class ItemFilter(
 // ---------------------------------------------------------------------------
 
 data class ItemDetailState(
-    val item: Item? = null,
+    val item: ItemEntity? = null,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null
@@ -63,13 +64,21 @@ class ItemsViewModel(
     private val _filter = MutableStateFlow(ItemFilter())
     val filter: StateFlow<ItemFilter> = _filter.asStateFlow()
 
-    /** Drives `viewModel.items.collectAsState(initial = emptyList())` in Compose. */
-    val items: StateFlow<List<Item>> = combine(
+    /** Drives `viewModel.items.collectAsStateWithLifecycle()` in Compose. */
+    val items: StateFlow<List<ItemEntity>> = combine(
         itemRepository.getAllItemsFlow(),
-        _filter
-    ) { itemList, filter ->
-        itemList
+        _filter,
+        ::applyFilter
+    ).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    private fun applyFilter(itemList: List<ItemEntity>, filter: ItemFilter): List<ItemEntity> {
+        return itemList
             .asSequence()
+            .filter { item -> !filter.activeOnly || item.isActive }
             .filter { item ->
                 filter.query.isBlank() || item.name.contains(filter.query, ignoreCase = true)
             }
@@ -77,17 +86,13 @@ class ItemsViewModel(
                 when (filter.sortOrder) {
                     ItemSortOrder.NAME_ASC -> compareBy { it.name.lowercase() }
                     ItemSortOrder.NAME_DESC -> compareByDescending { it.name.lowercase() }
-                    ItemSortOrder.PRICE_ASC -> compareBy { it.price ?: BigDecimal.ZERO }
-                    ItemSortOrder.PRICE_DESC -> compareByDescending { it.price ?: BigDecimal.ZERO }
+                    ItemSortOrder.PRICE_ASC -> compareBy { it.unitPrice }
+                    ItemSortOrder.PRICE_DESC -> compareByDescending { it.unitPrice }
                     ItemSortOrder.NEWEST_FIRST -> compareByDescending { it.createdAt }
                 }
             )
             .toList()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    }
 
     fun setSearchQuery(query: String) {
         _filter.update { it.copy(query = query) }
@@ -117,7 +122,7 @@ class ItemsViewModel(
     }
 
     fun startNewItem() {
-        _detailState.value = ItemDetailState(item = Item(name = ""))
+        _detailState.value = ItemDetailState(item = ItemEntity(name = "", unit = "", unitPrice = 0.0))
     }
 
     fun updateName(name: String) {
@@ -126,21 +131,21 @@ class ItemsViewModel(
         }
     }
 
-    fun updatePrice(price: BigDecimal?) {
+    fun updatePrice(price: Double) {
         _detailState.update { state ->
-            state.item?.let { state.copy(item = it.copy(price = price)) } ?: state
+            state.item?.let { state.copy(item = it.copy(unitPrice = price)) } ?: state
         }
     }
 
-    fun updateUnit(unit: ItemUnit?) {
+    fun updateUnit(unit: String) {
         _detailState.update { state ->
             state.item?.let { state.copy(item = it.copy(unit = unit)) } ?: state
         }
     }
 
-    fun updateDescription(description: String) {
+    fun updateSku(sku: String) {
         _detailState.update { state ->
-            state.item?.let { state.copy(item = it.copy(description = description.ifBlank { null })) } ?: state
+            state.item?.let { state.copy(item = it.copy(sku = sku.ifBlank { null })) } ?: state
         }
     }
 

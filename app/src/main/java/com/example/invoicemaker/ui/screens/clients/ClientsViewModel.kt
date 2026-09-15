@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.invoicemaker.data.local.entity.ClientEntity
-import com.example.invoicemaker.data.repository.ClientDomainRepository
+import com.example.invoicemaker.data.repository.ClientRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -43,7 +43,7 @@ data class ClientDetailState(
 // ---------------------------------------------------------------------------
 
 class ClientsViewModel(
-    private val clientRepository: ClientDomainRepository
+    private val clientRepository: ClientRepository
 ) : ViewModel() {
 
     // ---- LIST SCREEN -------------------------------------------------
@@ -52,7 +52,7 @@ class ClientsViewModel(
 
     /** Drives `viewModel.clients.collectAsStateWithLifecycle()` in Compose. */
     val clients: StateFlow<List<ClientEntity>> = combine(
-        clientRepository.getAllClientsFlow(),
+        clientRepository.observeAll(),
         _filter,
         ::applyFilter
     ).stateIn(
@@ -98,7 +98,7 @@ class ClientsViewModel(
         viewModelScope.launch {
             _detailState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
-                val client = clientRepository.getClientById(id)
+                val client = clientRepository.getById(id)
                 _detailState.update { it.copy(client = client, isLoading = false) }
             } catch (e: Exception) {
                 _detailState.update {
@@ -154,12 +154,7 @@ class ClientsViewModel(
         viewModelScope.launch {
             _detailState.update { it.copy(isSaving = true, errorMessage = null) }
             try {
-                val clientId = if (client.id == 0L) {
-                    clientRepository.insertClient(client)
-                } else {
-                    clientRepository.updateClient(client)
-                    client.id
-                }
+                val clientId = clientRepository.save(client)
                 _detailState.update { it.copy(isSaving = false) }
                 onSaved(clientId)
             } catch (e: Exception) {
@@ -173,7 +168,7 @@ class ClientsViewModel(
     fun deleteClient(id: Long, onDeleted: () -> Unit = {}) {
         viewModelScope.launch {
             try {
-                clientRepository.deleteClient(id)
+                clientRepository.deleteById(id)
                 onDeleted()
             } catch (e: Exception) {
                 _detailState.update { it.copy(errorMessage = e.message ?: "Failed to delete client") }
@@ -182,7 +177,7 @@ class ClientsViewModel(
     }
 
     fun deleteClientFromList(id: Long) {
-        viewModelScope.launch { clientRepository.deleteClient(id) }
+        viewModelScope.launch { clientRepository.deleteById(id) }
     }
 
     fun clearError() {
@@ -194,7 +189,7 @@ class ClientsViewModel(
     }
 
     companion object {
-        fun factory(clientRepository: ClientDomainRepository): ViewModelProvider.Factory =
+        fun factory(clientRepository: ClientRepository): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer { ClientsViewModel(clientRepository) }
             }

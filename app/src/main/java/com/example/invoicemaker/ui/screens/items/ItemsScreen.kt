@@ -18,19 +18,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.invoicemaker.data.local.entity.ItemEntity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemsScreen(
-    items: List<ItemEntity>,
+    itemRepository: ItemRepository,
     onAddItem: () -> Unit,
     onSearchClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onItemClick: (ItemEntity) -> Unit = {}
+    onItemClick: (ItemEntity) -> Unit = {},
+    viewModel: ItemsViewModel = viewModel(
+        factory = ItemsViewModel.factory(itemRepository)
+    )
 ) {
-    // Only show active items on the main list — isActive is a soft-delete flag
-    val visibleItems = items.filter { it.isActive }
+    // The ViewModel already filters to active items only (ItemFilter.activeOnly),
+    // so no extra filtering needed here.
+    val items by viewModel.items.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -53,11 +59,11 @@ fun ItemsScreen(
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        if (visibleItems.isEmpty()) {
+        if (items.isEmpty()) {
             EmptyItemsState(modifier = Modifier.padding(innerPadding))
         } else {
             ItemsList(
-                items = visibleItems,
+                items = items,
                 onItemClick = onItemClick,
                 modifier = Modifier.padding(innerPadding)
             )
@@ -182,25 +188,22 @@ private fun ItemRow(item: ItemEntity, onClick: () -> Unit) {
 }
 
 // --- Previews ---
+// Previews target ItemsList/EmptyItemsState directly since the full
+// screen now needs a real ItemRepository to build its ViewModel.
 
 @Preview(showBackground = true)
 @Composable
-private fun ItemsScreenEmptyPreview() {
+private fun ItemsListEmptyPreview() {
     MaterialTheme {
-        ItemsScreen(
-            items = emptyList(),
-            onAddItem = {},
-            onSearchClick = {},
-            onDeleteClick = {}
-        )
+        EmptyItemsState()
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun ItemsScreenListPreview() {
+private fun ItemsListPreview() {
     MaterialTheme {
-        ItemsScreen(
+        ItemsList(
             items = listOf(
                 ItemEntity(
                     id = 1,
@@ -216,9 +219,7 @@ private fun ItemsScreenListPreview() {
                     sku = "KIT-001"
                 )
             ),
-            onAddItem = {},
-            onSearchClick = {},
-            onDeleteClick = {}
+            onItemClick = {}
         )
     }
 }

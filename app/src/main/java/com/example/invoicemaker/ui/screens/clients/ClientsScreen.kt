@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.invoicemaker.data.local.entity.ClientEntity
-import com.example.invoicemaker.data.repository.ClientDomainRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
