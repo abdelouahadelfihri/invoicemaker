@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.invoicemaker.data.local.entity.ClientEntity
+import com.example.invoicemaker.data.repository.ClientDomainRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +15,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.example.invoicemaker.data.repository.ClientDomainRepository
 
 // ---------------------------------------------------------------------------
 // List screen filter/sort options
@@ -31,7 +32,7 @@ data class ClientFilter(
 // ---------------------------------------------------------------------------
 
 data class ClientDetailState(
-    val client: Client? = null,
+    val client: ClientEntity? = null,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null
@@ -47,16 +48,21 @@ class ClientsViewModel(
 
     // ---- LIST SCREEN -------------------------------------------------
 
-    // Kept private: nothing in the UI currently reads the query/sort back,
-    // it's only used internally to drive the `clients` flow below.
     private val _filter = MutableStateFlow(ClientFilter())
 
-    /** Drives `viewModel.clients.collectAsState(initial = emptyList())` in Compose. */
-    val clients: StateFlow<List<Client>> = combine(
+    /** Drives `viewModel.clients.collectAsStateWithLifecycle()` in Compose. */
+    val clients: StateFlow<List<ClientEntity>> = combine(
         clientRepository.getAllClientsFlow(),
-        _filter
-    ) { clientList, filter ->
-        clientList
+        _filter,
+        ::applyFilter
+    ).stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    private fun applyFilter(clientList: List<ClientEntity>, filter: ClientFilter): List<ClientEntity> {
+        return clientList
             .asSequence()
             .filter { client ->
                 if (filter.query.isBlank()) return@filter true
@@ -73,11 +79,7 @@ class ClientsViewModel(
                 }
             )
             .toList()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    }
 
     fun setSearchQuery(query: String) {
         _filter.update { it.copy(query = query) }
@@ -107,7 +109,7 @@ class ClientsViewModel(
     }
 
     fun startNewClient() {
-        _detailState.value = ClientDetailState(client = Client(name = ""))
+        _detailState.value = ClientDetailState(client = ClientEntity(name = ""))
     }
 
     fun updateName(name: String) {
