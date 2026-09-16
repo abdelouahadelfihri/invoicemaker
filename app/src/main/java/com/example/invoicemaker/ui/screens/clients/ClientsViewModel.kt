@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.invoicemaker.data.local.entity.Client
+import com.example.invoicemaker.data.repository.ClientRepository
+import com.example.invoicemaker.data.local.AppDatabase
 
 class ClientsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -13,7 +15,7 @@ class ClientsViewModel(application: Application) : AndroidViewModel(application)
     val searchResults: MutableLiveData<List<Client>>
 
     init {
-        val productDb = ClientRoomDatabase.getInstance(application)
+        val productDb = AppDatabase.getInstance(application)
         val productDao = productDb.productDao()
         repository = ClientRepository(productDao)
 
