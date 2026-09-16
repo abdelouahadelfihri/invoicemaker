@@ -1,36 +1,38 @@
-package com.example.roomdemo
+package com.example.invoicemaker.data.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
+import com.example.invoicemaker.data.local.dao.ClientDao
+import com.example.invoicemaker.data.local.entity.Client
 
-class ProductRepository(private val productDao: ProductDao) {
+class ClientRepository(private val productDao: ClientDao) {
 
-    val allProducts: LiveData<List<Product>> = productDao.getAllProducts()
-    val searchResults = MutableLiveData<List<Product>>()
+    val allClients: LiveData<List<Client>> = productDao.getAllClients()
+    val searchResults = MutableLiveData<List<Client>>()
 
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
-    fun insertProduct(newproduct: Product) {
+    fun insertClient(newproduct: Client) {
         coroutineScope.launch(Dispatchers.IO) {
-            productDao.insertProduct(newproduct)
+            productDao.insertClient(newproduct)
         }
     }
 
-    fun deleteProduct(name: String) {
+    fun deleteClient(name: String) {
         coroutineScope.launch(Dispatchers.IO) {
-            productDao.deleteProduct(name)
+            productDao.deleteClient(name)
         }
     }
 
-    fun findProduct(name: String) {
+    fun findClient(name: String) {
         coroutineScope.launch(Dispatchers.Main) {
             searchResults.value = asyncFind(name).await()
         }
     }
 
-    private fun asyncFind(name: String): Deferred<List<Product>?> =
+    private fun asyncFind(name: String): Deferred<List<Client>?> =
         coroutineScope.async(Dispatchers.IO) {
-            return@async productDao.findProduct(name)
+            return@async productDao.findClient(name)
         }
 }
