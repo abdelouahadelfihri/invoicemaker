@@ -10,7 +10,7 @@ import androidx.room.PrimaryKey
     tableName = "invoices",
     foreignKeys = [
         ForeignKey(
-            entity = ClientEntity::class,
+            entity = Client::class,
             parentColumns = ["id"],
             childColumns = ["clientId"],
             onDelete = ForeignKey.RESTRICT

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.invoicemaker.data.local.entity.ClientEntity
+import com.example.invoicemaker.data.local.entity.Client
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +29,7 @@ fun ClientsScreen(
     onAddClient: () -> Unit,
     onSearchClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onClientClick: (ClientEntity) -> Unit = {},
+    onClientClick: (Client) -> Unit = {},
     viewModel: ClientsViewModel = viewModel(
         factory = ClientsViewModel.factory(clientRepository)
     )
@@ -127,8 +127,8 @@ private fun EmptyClientsState(modifier: Modifier = Modifier) {
 
 @Composable
 private fun ClientsList(
-    clients: List<ClientEntity>,
-    onClientClick: (ClientEntity) -> Unit,
+    clients: List<Client>,
+    onClientClick: (Client) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -145,7 +145,7 @@ private fun ClientsList(
 }
 
 @Composable
-private fun ClientRow(client: ClientEntity, onClick: () -> Unit) {
+private fun ClientRow(client: Client, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -194,8 +194,8 @@ private fun ClientsListPreview() {
     MaterialTheme {
         ClientsList(
             clients = listOf(
-                ClientEntity(id = 1, name = "Ahmed Bensaid", phone = "+212 6 12 34 56 78"),
-                ClientEntity(id = 2, name = "Fatima Zahra", phone = "+212 6 98 76 54 32")
+                Client(id = 1, name = "Ahmed Bensaid", phone = "+212 6 12 34 56 78"),
+                Client(id = 2, name = "Fatima Zahra", phone = "+212 6 98 76 54 32")
             ),
             onClientClick = {}
         )

@@ -9,7 +9,7 @@ import androidx.room.Index
     tableName = "estimates",
     foreignKeys = [
         ForeignKey(
-            entity = ClientEntity::class,
+            entity = Client::class,
             parentColumns = ["id"],
             childColumns = ["clientId"],
             onDelete = ForeignKey.RESTRICT

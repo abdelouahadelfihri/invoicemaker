@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.invoicemaker.data.local.dao.ClientDao
 import com.example.invoicemaker.data.local.dao.InvoiceDao
-import com.example.invoicemaker.data.local.entity.ClientEntity
+import com.example.invoicemaker.data.local.entity.Client
 import com.example.invoicemaker.data.local.entity.EstimateEntity
 import com.example.invoicemaker.data.local.entity.EstimateItemEntity
 import com.example.invoicemaker.data.local.entity.InvoiceEntity
@@ -17,7 +17,7 @@ import com.example.invoicemaker.data.local.entity.PaymentEntity
 
 @Database(
     entities = [
-        ClientEntity::class,
+        Client::class,
         InvoiceEntity::class,
         InvoiceItemEntity::class,
         PaymentEntity::class,

@@ -1,34 +1,35 @@
-package com.example.roomdemo
+package com.example.invoicemaker.ui.screens.clients
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.example.invoicemaker.data.local.entity.Client
 
-class ProductsViewModel(application: Application) : AndroidViewModel(application) {
+class ClientsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: ProductRepository
-    val allProducts: LiveData<List<Product>>
-    val searchResults: MutableLiveData<List<Product>>
+    private val repository: ClientRepository
+    val allClients: LiveData<List<Client>>
+    val searchResults: MutableLiveData<List<Client>>
 
     init {
-        val productDb = ProductRoomDatabase.getInstance(application)
+        val productDb = ClientRoomDatabase.getInstance(application)
         val productDao = productDb.productDao()
-        repository = ProductRepository(productDao)
+        repository = ClientRepository(productDao)
 
-        allProducts = repository.allProducts
+        allClients = repository.allClients
         searchResults = repository.searchResults
     }
 
-    fun insertProduct(product: Product) {
-        repository.insertProduct(product)
+    fun insertClient(product: Client) {
+        repository.insertClient(product)
     }
 
-    fun findProduct(name: String) {
-        repository.findProduct(name)
+    fun findClient(name: String) {
+        repository.findClient(name)
     }
 
-    fun deleteProduct(name: String) {
-        repository.deleteProduct(name)
+    fun deleteClient(name: String) {
+        repository.deleteClient(name)
     }
 }
