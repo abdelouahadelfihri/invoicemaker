@@ -29,19 +29,19 @@ import com.example.invoicemaker.data.local.entity.PaymentEntity
     exportSchema = false
 )
 @TypeConverters(Converters::class)
-abstract class AppDatabase : RoomDatabase() {
+abstract class InvoiceDatabase : RoomDatabase() {
 
     abstract fun invoiceDao(): InvoiceDao
     abstract fun clientDao(): ClientDao
 
     companion object {
-        @Volatile private var INSTANCE: AppDatabase? = null
+        @Volatile private var INSTANCE: InvoiceDatabase? = null
 
-        fun getInstance(context: Context): AppDatabase {
+        fun getInstance(context: Context): InvoiceDatabase {
             return INSTANCE ?: synchronized(this) {
                 Room.databaseBuilder(
                     context.applicationContext,
-                    AppDatabase::class.java,
+                    InvoiceDatabase::class.java,
                     "invoice_maker.db"
                 ).build().also { INSTANCE = it }
             }
