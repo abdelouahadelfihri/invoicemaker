@@ -1,23 +1,24 @@
-package com.example.roomdemo
+package com.example.invoicemaker.data.local.dao
 
 import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.example.invoicemaker.data.local.entity.Client
 
 @Dao
-interface ProductDao {
+interface ClientDao {
 
     @Insert
-    fun insertProduct(product: Product)
+    fun insertClient(client: Client)
 
     @Query("SELECT * FROM products WHERE productName = :name")
-    fun findProduct(name: String): List<Product>
+    fun findClient(name: String): List<Client>
 
     @Query("DELETE FROM products WHERE productName = :name")
-    fun deleteProduct(name: String)
+    fun deleteClient(name: String)
 
     @Query("SELECT * FROM products")
-    fun getAllProducts(): LiveData<List<Product>>
+    fun getAllClients(): LiveData<List<Client>>
 
 }
