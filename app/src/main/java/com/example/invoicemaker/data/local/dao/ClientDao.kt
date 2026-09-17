@@ -1,24 +1,34 @@
 package com.example.invoicemaker.data.local.dao
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.Delete
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 import com.example.invoicemaker.data.local.entity.Client
 
 @Dao
 interface ClientDao {
 
     @Insert
-    fun insertClient(client: Client)
+    suspend fun insertClient(client: Client)
 
-    @Query("SELECT * FROM products WHERE productName = :name")
-    fun findClient(name: String): List<Client>
+    @Delete
+    suspend fun deleteClient(id: Int)
 
-    @Query("DELETE FROM products WHERE productName = :name")
-    fun deleteClient(name: String)
+    @Query("""
+    SELECT * FROM clients 
+    WHERE name LIKE '%' || :query || '%' 
+       OR companyName LIKE '%' || :query || '%' 
+       OR phone LIKE '%' || :query || '%' 
+       OR email LIKE '%' || :query || '%'
+       OR address LIKE '%' || :query || '%'
+       OR city LIKE '%' || :query || '%'
+       OR taxId LIKE '%' || :query || '%'
+       OR notes LIKE '%' || :query || '%'
+    """)
+    fun searchClients(query: String): Flow<List<Client>>
 
-    @Query("SELECT * FROM products")
-    fun getAllClients(): LiveData<List<Client>>
-
+    @Query("SELECT * FROM clients")
+    fun getAllClients(): Flow<List<Client>>
 }
