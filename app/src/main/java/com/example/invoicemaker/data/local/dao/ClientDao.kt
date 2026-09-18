@@ -30,5 +30,5 @@ interface ClientDao {
     fun searchClients(query: String): Flow<List<Client>>
 
     @Query("SELECT * FROM clients")
-    fun getAllClients(): Flow<List<Client>>
+    fun observeAll(): Flow<List<Client>>
 }
