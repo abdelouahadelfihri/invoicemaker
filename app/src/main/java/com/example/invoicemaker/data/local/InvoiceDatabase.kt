@@ -7,6 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.invoicemaker.data.local.dao.ClientDao
 import com.example.invoicemaker.data.local.dao.InvoiceDao
+import com.example.invoicemaker.data.local.dao.InvoiceItemDao
 import com.example.invoicemaker.data.local.entity.Client
 import com.example.invoicemaker.data.local.entity.EstimateEntity
 import com.example.invoicemaker.data.local.entity.EstimateItemEntity
@@ -33,6 +34,7 @@ abstract class InvoiceDatabase : RoomDatabase() {
 
     abstract fun invoiceDao(): InvoiceDao
     abstract fun clientDao(): ClientDao
+    abstract fun invoiceItemDao(): InvoiceItemDao
 
     companion object {
         @Volatile private var INSTANCE: InvoiceDatabase? = null

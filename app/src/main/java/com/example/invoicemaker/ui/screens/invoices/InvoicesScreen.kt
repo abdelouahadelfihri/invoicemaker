@@ -6,8 +6,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
@@ -18,12 +21,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.yourpackage.metalconstructions.data.InvoiceStatus
+import com.example.invoicemaker.data.local.entity.InvoiceStatus
 import com.example.invoicemaker.ui.components.BobbingHint
 import com.example.invoicemaker.ui.components.EmptyState
 import java.math.BigDecimal
@@ -32,6 +38,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.lazy.items
+
 /**
  * UI model derived from Invoice + Client lookup.
  * Build this in the ViewModel by joining Invoice with its Client and
@@ -67,29 +74,28 @@ fun InvoicesScreen(
     viewModel: InvoicesViewModel = viewModel()
 ) {
     var selectedFilter by remember { mutableStateOf<InvoiceStatus?>(null) } // null = "All"
+    var isSearchActive by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
     val allInvoices: List<InvoiceUiModel> = viewModel.invoices.collectAsState(initial = emptyList()).value
 
-    val filteredInvoices = if (selectedFilter == null) {
-        allInvoices
-    } else {
-        allInvoices.filter { it.status == selectedFilter }
-    }
+    val filteredInvoices = allInvoices
+        .filter { selectedFilter == null || it.status == selectedFilter }
+        .filter {
+            searchQuery.isBlank() ||
+                    it.invoiceNumber.contains(searchQuery, ignoreCase = true) ||
+                    it.clientName.contains(searchQuery, ignoreCase = true)
+        }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Invoices", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = { /* TODO: open search */ }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
-                    }
-                    IconButton(onClick = { /* TODO: open filter sheet */ }) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
-                    }
-                    IconButton(onClick = { /* TODO: open sort menu */ }) {
-                        Icon(Icons.Default.Sort, contentDescription = "Sort")
-                    }
+            InvoicesTopAppBar(
+                isSearchActive = isSearchActive,
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                onSearchActiveChange = { active ->
+                    isSearchActive = active
+                    if (!active) searchQuery = ""
                 }
             )
         },
@@ -136,6 +142,78 @@ fun InvoicesScreen(
             }
         }
     }
+}
+
+/**
+ * Top bar that toggles between its normal state (title + search/filter/sort icons)
+ * and an active search state (back arrow + text field + clear button).
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun InvoicesTopAppBar(
+    isSearchActive: Boolean,
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchActiveChange: (Boolean) -> Unit
+) {
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(isSearchActive) {
+        if (isSearchActive) {
+            focusRequester.requestFocus()
+        }
+    }
+
+    TopAppBar(
+        title = {
+            if (isSearchActive) {
+                TextField(
+                    value = searchQuery,
+                    onValueChange = onSearchQueryChange,
+                    placeholder = { Text("Search invoices...") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
+                )
+            } else {
+                Text("Invoices", fontWeight = FontWeight.Bold)
+            }
+        },
+        navigationIcon = {
+            if (isSearchActive) {
+                IconButton(onClick = { onSearchActiveChange(false) }) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                }
+            }
+        },
+        actions = {
+            if (isSearchActive) {
+                if (searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { onSearchQueryChange("") }) {
+                        Icon(Icons.Default.Close, contentDescription = "Clear")
+                    }
+                }
+            } else {
+                IconButton(onClick = { onSearchActiveChange(true) }) {
+                    Icon(Icons.Default.Search, contentDescription = "Search")
+                }
+                IconButton(onClick = { /* TODO: open filter sheet */ }) {
+                    Icon(Icons.Default.FilterList, contentDescription = "Filter")
+                }
+                IconButton(onClick = { /* TODO: open sort menu */ }) {
+                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                }
+            }
+        }
+    )
 }
 
 @Composable

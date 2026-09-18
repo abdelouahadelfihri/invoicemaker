@@ -18,7 +18,7 @@ import androidx.room.PrimaryKey
     ],
     indices = [Index("clientId"), Index(value = ["invoiceNumber"], unique = true)]
 )
-data class InvoiceEntity(
+class InvoiceEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val invoiceNumber: String,
     val clientId: Long,
