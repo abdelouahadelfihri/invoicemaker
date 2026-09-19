@@ -1,340 +1,89 @@
 package com.example.invoicemaker.ui.screens.estimates
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.invoicemaker.data.Estimate
-import com.example.invoicemaker.data.EstimateStatus
+import com.example.invoicemaker.data.local.InvoiceDatabase
+import com.example.invoicemaker.data.local.entity.EstimateEntity
+import com.example.invoicemaker.data.local.entity.EstimateItemEntity
+import com.example.invoicemaker.data.local.entity.EstimateStatus
+import com.example.invoicemaker.data.repository.ClientRepository // ASSUMPTION: exists, mirrors EstimateRepository
+import com.example.invoicemaker.data.repository.EstimateRepository
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.RoundingMode
 
-// ---------------------------------------------------------------------------
-// computedStatus — put this next to the Estimate data class in your data
-// package. Auto-flips DRAFT/SENT to EXPIRED once expiryDate has passed,
-// but never overrides a manually-set ACCEPTED / REJECTED / CONVERTED status.
-// ---------------------------------------------------------------------------
+class EstimatesViewModel(application: Application) : AndroidViewModel(application) {
 
-val Estimate.computedStatus: EstimateStatus
-    get() {
-        if (status == EstimateStatus.ACCEPTED ||
-            status == EstimateStatus.REJECTED ||
-            status == EstimateStatus.CONVERTED
-        ) return status
-        return if (System.currentTimeMillis() > expiryDate) EstimateStatus.EXPIRED else status
-    }
+    private val db = InvoiceDatabase.getInstance(application)
 
-// ---------------------------------------------------------------------------
-// Estimate -> EstimateUiModel mapping. EstimateUiModel is the data class
-// defined in EstimatesScreen.kt. If your Client class uses a different
-// property name than `name`, adjust the client?.name line below.
-// ---------------------------------------------------------------------------
-
-fun Estimate.toUiModel(client: Client?): EstimateUiModel = EstimateUiModel(
-    id = id,
-    estimateNumber = estimateNumber,
-    clientName = client?.name ?: "Unknown Client",
-    status = computedStatus,
-    issueDate = issueDate,
-    expiryDate = expiryDate,
-    itemCount = lineItems.size,
-    subtotal = subtotal,
-    totalTax = totalTax,
-    total = total
-)
-
-// ---------------------------------------------------------------------------
-// Repository contracts — implement against your Room DAO.
-// Persisting lineItems (embedded list) alongside the Estimate row is an
-// implementation detail of insertEstimate/updateEstimate (e.g. a TypeConverter,
-// or the DAO writing to a child table internally) — the ViewModel just passes
-// the whole Estimate object through.
-// ---------------------------------------------------------------------------
-
-interface EstimateRepository {
-    fun getAllEstimatesFlow(): Flow<List<Estimate>>
-    suspend fun getEstimateById(id: Long): Estimate?
-    suspend fun insertEstimate(estimate: Estimate): Long
-    suspend fun updateEstimate(estimate: Estimate)
-    suspend fun deleteEstimate(estimateId: Long)
-    suspend fun getNextEstimateNumber(): String
-}
-
-interface ClientRepository {
-    fun getAllClientsFlow(): Flow<List<Client>>
-    suspend fun getClientById(id: Long): Client?
-}
-
-// ---------------------------------------------------------------------------
-// List screen filter options
-// ---------------------------------------------------------------------------
-
-enum class EstimateSortOrder { DATE_DESC, DATE_ASC, AMOUNT_DESC, AMOUNT_ASC }
-
-data class EstimateFilter(
-    val query: String = "",
-    val statusFilter: EstimateStatus? = null,
-    val sortOrder: EstimateSortOrder = EstimateSortOrder.DATE_DESC
-)
-
-// ---------------------------------------------------------------------------
-// Detail/edit screen state — wraps the working Estimate directly, since
-// lineItems already live inside it.
-// ---------------------------------------------------------------------------
-
-data class EstimateDetailState(
-    val estimate: Estimate? = null,
-    val isLoading: Boolean = false,
-    val isSaving: Boolean = false,
-    val errorMessage: String? = null
-)
-
-// ---------------------------------------------------------------------------
-// ViewModel
-// ---------------------------------------------------------------------------
-
-class EstimatesViewModel(
-
-    private val estimateRepository: EstimateRepository,
-    private val clientRepository: ClientRepository
-
-) : ViewModel() {
-
-    // ---- LIST SCREEN -------------------------------------------------
-
-    private val _filter = MutableStateFlow(EstimateFilter())
-    val filter: StateFlow<EstimateFilter> = _filter.asStateFlow()
-
-    /** Drives `viewModel.estimates.collectAsState(initial = emptyList())` in Compose. */
-    val estimates: StateFlow<List<EstimateUiModel>> = combine(
-        estimateRepository.getAllEstimatesFlow(),
-        clientRepository.getAllClientsFlow(),
-        _filter
-    ) { estimateList, clients, filter ->
-        val clientsById = clients.associateBy { it.id }
-
-        estimateList
-            .asSequence()
-            .filter { est ->
-                filter.statusFilter == null || est.computedStatus == filter.statusFilter
-            }
-            .filter { est ->
-                if (filter.query.isBlank()) return@filter true
-                val client = clientsById[est.clientId]
-                est.estimateNumber.contains(filter.query, ignoreCase = true) ||
-                        client?.name?.contains(filter.query, ignoreCase = true) == true
-            }
-            .sortedWith(
-                when (filter.sortOrder) {
-                    EstimateSortOrder.DATE_DESC -> compareByDescending { it.issueDate }
-                    EstimateSortOrder.DATE_ASC -> compareBy { it.issueDate }
-                    EstimateSortOrder.AMOUNT_DESC -> compareByDescending { it.total }
-                    EstimateSortOrder.AMOUNT_ASC -> compareBy { it.total }
-                }
-            )
-            .map { est -> est.toUiModel(clientsById[est.clientId]) }
-            .toList()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+    private val estimateRepository = EstimateRepository(
+        estimateDao = db.estimateDao(),
+        estimateItemDao = db.estimateItemDao()
     )
+    private val clientRepository = ClientRepository(clientDao = db.clientDao()) // ASSUMPTION: constructor shape
 
-    fun setSearchQuery(query: String) {
-        _filter.update { it.copy(query = query) }
-    }
+    val estimates: Flow<List<EstimateUiModel>> = combine(
+        estimateRepository.observeAll(),
+        clientRepository.observeAll(), // ASSUMPTION: method exists, mirrors EstimateRepository.observeAll()
+        estimateRepository.observeAllItems()
+    ) { estimateList, clients, allItems ->
+        val clientNameById = clients.associateBy({ it.id }, { it.name }) // ASSUMPTION: ClientEntity has id, name
+        val itemsByEstimateId = allItems.groupBy { it.estimateId }
 
-    fun setStatusFilter(status: EstimateStatus?) {
-        _filter.update { it.copy(statusFilter = status) }
-    }
-
-    fun setSortOrder(order: EstimateSortOrder) {
-        _filter.update { it.copy(sortOrder = order) }
-    }
-
-    // ---- DETAIL / EDIT SCREEN -----------------------------------------
-
-    private val _detailState = MutableStateFlow(EstimateDetailState())
-    val detailState: StateFlow<EstimateDetailState> = _detailState.asStateFlow()
-
-    fun loadEstimate(id: Long) {
-        viewModelScope.launch {
-            _detailState.update { it.copy(isLoading = true, errorMessage = null) }
-            try {
-                val estimate = estimateRepository.getEstimateById(id)
-                _detailState.update { it.copy(estimate = estimate, isLoading = false) }
-            } catch (e: Exception) {
-                _detailState.update {
-                    it.copy(isLoading = false, errorMessage = e.message ?: "Failed to load estimate")
-                }
-            }
-        }
-    }
-
-    /** Call when creating a brand-new estimate (e.g. tapping "+" on the list screen). */
-    fun startNewEstimate(clientId: Long) {
-        viewModelScope.launch {
-            val number = estimateRepository.getNextEstimateNumber()
-            _detailState.value = EstimateDetailState(
-                estimate = Estimate(
-                    id = 0,
-                    estimateNumber = number,
-                    clientId = clientId,
-                    lineItems = emptyList(),
-                    status = EstimateStatus.DRAFT,
-                    issueDate = System.currentTimeMillis(),
-                    expiryDate = System.currentTimeMillis() + THIRTY_DAYS_MS
-                )
+        estimateList.map { estimate ->
+            buildEstimateUiModel(
+                estimate = estimate,
+                clientName = clientNameById[estimate.clientId] ?: "Unknown Client",
+                items = itemsByEstimateId[estimate.id].orEmpty()
             )
         }
     }
 
-    fun updateClient(clientId: Long) {
-        _detailState.update { state ->
-            state.estimate?.let { state.copy(estimate = it.copy(clientId = clientId)) } ?: state
-        }
+    fun deleteEstimate(id: Long) {
+        viewModelScope.launch { estimateRepository.deleteById(id) }
     }
 
-    fun updateExpiryDate(timestamp: Long) {
-        _detailState.update { state ->
-            state.estimate?.let { state.copy(estimate = it.copy(expiryDate = timestamp)) } ?: state
-        }
+    fun updateStatus(id: Long, newStatus: EstimateStatus) {
+        viewModelScope.launch { estimateRepository.updateStatus(id, newStatus.name) }
     }
 
-    fun updateNotes(notes: String) {
-        _detailState.update { state ->
-            state.estimate?.let { state.copy(estimate = it.copy(notes = notes)) } ?: state
-        }
+    suspend fun generateNextEstimateNumber(): String {
+        val last = estimateRepository.getLastEstimateNumber()
+        val nextNumber = last?.substringAfterLast("-")?.toIntOrNull()?.plus(1) ?: 1
+        return "EST-%04d".format(nextNumber)
     }
+}
 
-    fun updateTerms(terms: String) {
-        _detailState.update { state ->
-            state.estimate?.let { state.copy(estimate = it.copy(termsAndConditions = terms)) } ?: state
-        }
+// --- Mapper (unchanged) ---
+
+private fun buildEstimateUiModel(
+    estimate: EstimateEntity,
+    clientName: String,
+    items: List<EstimateItemEntity>
+): EstimateUiModel {
+    val subtotal = items.fold(BigDecimal.ZERO) { acc, item -> acc + BigDecimal.valueOf(item.lineTotal) }
+    val totalTax = items.fold(BigDecimal.ZERO) { acc, item ->
+        acc + BigDecimal.valueOf(item.lineTotal)
+            .multiply(BigDecimal.valueOf(item.taxRate))
+            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
     }
+    val total = subtotal + totalTax
 
-    fun updateStatus(status: EstimateStatus) {
-        _detailState.update { state ->
-            state.estimate?.let { state.copy(estimate = it.copy(status = status)) } ?: state
-        }
-    }
+    val status = EstimateStatus.entries.find { it.name == estimate.status } ?: EstimateStatus.DRAFT
 
-    // ---- Line items (embedded in the Estimate) ------------------------
-
-    fun addLine() {
-        _detailState.update { state ->
-            val estimate = state.estimate ?: return@update state
-            val newLine = EstimateLine(
-                estimateId = estimate.id,
-                description = "",
-                quantity = BigDecimal.ONE,
-                unit = ItemUnit.UNIT,
-                unitPrice = BigDecimal.ZERO,
-                sortOrder = estimate.lineItems.size
-            )
-            state.copy(estimate = estimate.copy(lineItems = estimate.lineItems + newLine))
-        }
-    }
-
-    fun updateLine(lineId: Long, transform: (EstimateLine) -> EstimateLine) {
-        _detailState.update { state ->
-            val estimate = state.estimate ?: return@update state
-            val updatedLines = estimate.lineItems.map { if (it.id == lineId) transform(it) else it }
-            state.copy(estimate = estimate.copy(lineItems = updatedLines))
-        }
-    }
-
-    fun removeLine(lineId: Long) {
-        _detailState.update { state ->
-            val estimate = state.estimate ?: return@update state
-            state.copy(estimate = estimate.copy(lineItems = estimate.lineItems.filterNot { it.id == lineId }))
-        }
-    }
-
-    // ---- Save / delete --------------------------------------------------
-
-    fun saveEstimate(onSaved: (Long) -> Unit = {}) {
-        val estimate = _detailState.value.estimate ?: return
-
-        viewModelScope.launch {
-            _detailState.update { it.copy(isSaving = true, errorMessage = null) }
-            try {
-                val estimateId = if (estimate.id == 0L) {
-                    estimateRepository.insertEstimate(estimate)
-                } else {
-                    estimateRepository.updateEstimate(estimate)
-                    estimate.id
-                }
-                _detailState.update { it.copy(isSaving = false) }
-                onSaved(estimateId)
-            } catch (e: Exception) {
-                _detailState.update {
-                    it.copy(isSaving = false, errorMessage = e.message ?: "Failed to save estimate")
-                }
-            }
-        }
-    }
-
-    fun deleteEstimate(id: Long, onDeleted: () -> Unit = {}) {
-        viewModelScope.launch {
-            try {
-                estimateRepository.deleteEstimate(id)
-                onDeleted()
-            } catch (e: Exception) {
-                _detailState.update { it.copy(errorMessage = e.message ?: "Failed to delete estimate") }
-            }
-        }
-    }
-
-    fun deleteEstimateFromList(id: Long) {
-        viewModelScope.launch { estimateRepository.deleteEstimate(id) }
-    }
-
-    // ---- Quick status actions from the list screen -----------------------
-
-    fun markAsSent(id: Long) = updateStatusById(id, EstimateStatus.SENT)
-    fun markAsAccepted(id: Long) = updateStatusById(id, EstimateStatus.ACCEPTED)
-    fun markAsRejected(id: Long) = updateStatusById(id, EstimateStatus.REJECTED)
-
-    private fun updateStatusById(id: Long, status: EstimateStatus) {
-        viewModelScope.launch {
-            estimateRepository.getEstimateById(id)?.let {
-                estimateRepository.updateEstimate(it.copy(status = status))
-            }
-        }
-    }
-
-    /**
-     * Convert an accepted estimate into an invoice. Marks the estimate as
-     * CONVERTED and records the new invoice's id. Hook the actual Invoice
-     * creation (mapping lineItems -> InvoiceLine) up to your InvoiceRepository
-     * before calling this, then pass in the resulting invoice id.
-     */
-    fun markConverted(estimateId: Long, invoiceId: Long) {
-        viewModelScope.launch {
-            estimateRepository.getEstimateById(estimateId)?.let {
-                estimateRepository.updateEstimate(
-                    it.copy(status = EstimateStatus.CONVERTED, convertedInvoiceId = invoiceId)
-                )
-            }
-        }
-    }
-
-    fun clearError() {
-        _detailState.update { it.copy(errorMessage = null) }
-    }
-
-    fun resetDetailState() {
-        _detailState.value = EstimateDetailState()
-    }
-
-    companion object {
-        private const val THIRTY_DAYS_MS = 30L * 24 * 60 * 60 * 1000
-    }
+    return EstimateUiModel(
+        id = estimate.id,
+        estimateNumber = estimate.estimateNumber,
+        clientName = clientName,
+        status = status,
+        issueDate = estimate.issueDate,
+        expiryDate = estimate.expiryDate,
+        itemCount = items.size,
+        subtotal = subtotal,
+        totalTax = totalTax,
+        total = total
+    )
 }

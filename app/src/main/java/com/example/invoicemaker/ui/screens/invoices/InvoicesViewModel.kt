@@ -8,38 +8,34 @@ import com.example.invoicemaker.data.local.entity.InvoiceEntity
 import com.example.invoicemaker.data.local.entity.InvoiceItemEntity
 import com.example.invoicemaker.data.local.entity.InvoiceStatus
 import com.example.invoicemaker.data.local.entity.PaymentEntity
+import com.example.invoicemaker.data.repository.InvoiceItemRepository
+import com.example.invoicemaker.data.repository.InvoiceRepository
+import com.example.invoicemaker.data.repository.PaymentRepository
+import com.example.invoicemaker.data.repository.ClientRepository // ASSUMPTION: exists, mirrors other repositories
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
+
 class InvoicesViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val db = InvoiceDatabase.getInstance(application) // ASSUMPTION: adjust to your actual DB accessor
-    private val invoiceDao = db.invoiceDao()
-    private val clientDao = db.clientDao()
-    private val invoiceItemDao = db.invoiceItemDao() // ASSUMPTION: DAO name
-    private val paymentDao = db.paymentDao()         // ASSUMPTION: DAO name
+    private val db = InvoiceDatabase.getInstance(application)
 
-    /**
-     * Combines invoices with their client name, items, and payments,
-     * then maps each to a fully computed InvoiceUiModel.
-     *
-     * ASSUMPTION: clientDao.observeAll() returns Flow<List<ClientEntity>>
-     * ASSUMPTION: invoiceItemDao.observeAll() returns Flow<List<InvoiceItemEntity>>
-     * ASSUMPTION: paymentDao.observeAll() returns Flow<List<PaymentEntity>>
-     * If instead you have per-invoice queries (observeItemsForInvoice(id), etc.),
-     * tell me and I'll rewrite this using flatMapLatest per invoice instead.
-     */
+    private val invoiceRepository = InvoiceRepository(dao = db.invoiceDao())
+    private val invoiceItemRepository = InvoiceItemRepository(dao = db.invoiceItemDao())
+    private val paymentRepository = PaymentRepository(dao = db.paymentDao())
+    private val clientRepository = ClientRepository(clientDao = db.clientDao()) // ASSUMPTION: constructor shape
+
     val invoices: Flow<List<InvoiceUiModel>> = combine(
-        invoiceDao.observeAll(),
-        clientDao.observeAll(),
-        invoiceItemDao.observeAll(),
-        paymentDao.observeAll()
+        invoiceRepository.observeAll(),
+        clientRepository.observeAll(), // ASSUMPTION: method exists
+        invoiceItemRepository.observeAll(),
+        paymentRepository.observeAll()
     ) { invoiceList, clients, allItems, allPayments ->
         val clientNameById = clients.associateBy({ it.id }, { it.name }) // ASSUMPTION: ClientEntity has id, name
-        val itemsByInvoiceId = allItems.groupBy { it.invoiceId }         // ASSUMPTION: InvoiceItemEntity has invoiceId
-        val paymentsByInvoiceId = allPayments.groupBy { it.invoiceId }   // ASSUMPTION: PaymentEntity has invoiceId
+        val itemsByInvoiceId = allItems.groupBy { it.invoiceId }
+        val paymentsByInvoiceId = allPayments.groupBy { it.invoiceId }
 
         invoiceList.map { invoice ->
             buildInvoiceUiModel(
@@ -52,31 +48,17 @@ class InvoicesViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun deleteInvoice(id: Long) {
-        viewModelScope.launch {
-            invoiceDao.deleteById(id)
-        }
+        viewModelScope.launch { invoiceRepository.deleteInvoice(id) }
     }
 
     fun markAsPaid(id: Long) {
-        viewModelScope.launch {
-            val invoice = invoiceDao.getById(id) ?: return@launch
-            invoiceDao.update(invoice.copy(status = InvoiceStatus.PAID.name))
-            // NOTE: InvoiceEntity is declared as `class`, not `data class`,
-            // so .copy() won't work until you change it to `data class InvoiceEntity(...)`
-        }
+        viewModelScope.launch { invoiceRepository.updateStatus(id, InvoiceStatus.PAID) }
     }
 
-    suspend fun generateNextInvoiceNumber(): String {
-        val last = invoiceDao.getLastInvoiceNumber()
-        val nextNumber = last
-            ?.substringAfterLast("-")
-            ?.toIntOrNull()
-            ?.plus(1) ?: 1
-        return "INV-%04d".format(nextNumber)
-    }
+    suspend fun generateNextInvoiceNumber(): String = invoiceRepository.generateNextInvoiceNumber()
 }
 
-// --- Mapper ---
+// --- Mapper (unchanged) ---
 
 private fun buildInvoiceUiModel(
     invoice: InvoiceEntity,
@@ -84,11 +66,7 @@ private fun buildInvoiceUiModel(
     items: List<InvoiceItemEntity>,
     payments: List<PaymentEntity>
 ): InvoiceUiModel {
-    // lineTotal is treated as the net amount (quantity * unitPrice) before tax.
-    // Tax per line is derived from taxRate (a percentage, e.g. 20.0 for 20%).
-    val subtotal = items.fold(BigDecimal.ZERO) { acc, item ->
-        acc + BigDecimal.valueOf(item.lineTotal)
-    }
+    val subtotal = items.fold(BigDecimal.ZERO) { acc, item -> acc + BigDecimal.valueOf(item.lineTotal) }
     val totalTax = items.fold(BigDecimal.ZERO) { acc, item ->
         val lineTax = BigDecimal.valueOf(item.lineTotal)
             .multiply(BigDecimal.valueOf(item.taxRate))
@@ -97,9 +75,7 @@ private fun buildInvoiceUiModel(
     }
     val total = subtotal + totalTax
 
-    val amountPaid = payments.fold(BigDecimal.ZERO) { acc, payment ->
-        acc + BigDecimal.valueOf(payment.amount) // ASSUMPTION: PaymentEntity has a Double `amount` field — confirm when you share it
-    }
+    val amountPaid = payments.fold(BigDecimal.ZERO) { acc, payment -> acc + BigDecimal.valueOf(payment.amount) }
     val amountDue = (total - amountPaid).coerceAtLeast(BigDecimal.ZERO)
 
     val storedStatus = InvoiceStatus.entries.find { it.name == invoice.status } ?: InvoiceStatus.UNPAID

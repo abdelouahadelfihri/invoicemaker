@@ -2,6 +2,7 @@ package com.example.invoicemaker.data.repository
 
 import com.example.invoicemaker.data.local.dao.InvoiceDao
 import com.example.invoicemaker.data.local.entity.InvoiceEntity
+import com.example.invoicemaker.data.local.entity.InvoiceStatus
 import kotlinx.coroutines.flow.Flow
 
 class InvoiceRepository(
@@ -38,7 +39,7 @@ class InvoiceRepository(
 
     suspend fun updateStatus(id: Long, status: InvoiceStatus) {
         dao.getById(id)?.let { invoice ->
-            dao.update(invoice.copy(status = status))
+            dao.update(invoice.copy(status = status.name)) // FIX: was `status = status`, but InvoiceEntity.status is a String
         }
     }
 }
