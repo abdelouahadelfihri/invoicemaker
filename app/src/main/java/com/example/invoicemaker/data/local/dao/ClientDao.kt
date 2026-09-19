@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Delete
 import androidx.room.Query
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 import com.example.invoicemaker.data.local.entity.Client
 
@@ -13,8 +14,11 @@ interface ClientDao {
     @Insert
     suspend fun insertClient(client: Client)
 
+    @Update
+    suspend fun updateClient(client: Client)
+
     @Delete
-    suspend fun deleteClient(id: Int)
+    suspend fun deleteClient(id: Long)
 
     @Query("""
     SELECT * FROM clients 
