@@ -39,13 +39,6 @@ import java.util.Date
 import java.util.Locale
 import androidx.compose.foundation.lazy.items
 
-/**
- * UI model derived from Invoice + Client lookup.
- * Build this in the ViewModel by joining Invoice with its Client and
- * pre-computing/formatting values so the Composable stays purely presentational.
- * Use invoice.computedStatus (not the stored `status`) when mapping, so
- * overdue/paid/partially-paid reflect real payment state, not a stale field.
- */
 data class InvoiceUiModel(
     val id: Long,
     val invoiceNumber: String,

@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -11,11 +12,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,7 +29,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.yourpackage.metalconstructions.data.InvoiceStatus
 import com.example.invoicemaker.ui.components.BobbingHint
 import com.example.invoicemaker.ui.components.EmptyState
 import java.math.BigDecimal
@@ -37,59 +36,35 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.foundation.lazy.items
 
-/**
- * UI model derived from Invoice + Client lookup.
- * Build this in the ViewModel by joining Invoice with its Client and
- * pre-computing/formatting values so the Composable stays purely presentational.
- * Use invoice.computedStatus (not the stored `status`) when mapping, so
- * overdue/paid/partially-paid reflect real payment state, not a stale field.
- */
-data class InvoiceUiModel(
-    val id: Long,
-    val invoiceNumber: String,
-    val clientName: String,
-    val status: InvoiceStatus,       // pass in invoice.computedStatus
-    val issueDate: Long,
-    val dueDate: Long,
-    val itemCount: Int,
-    val paymentCount: Int,
-    val subtotal: BigDecimal,
-    val totalTax: BigDecimal,
-    val total: BigDecimal,
-    val amountPaid: BigDecimal,
-    val amountDue: BigDecimal
-)
-
-private val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-private fun formatDate(millis: Long): String = dateFormatter.format(Date(millis))
-private fun formatMoney(amount: BigDecimal): String =
+private val estimateDateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+private fun formatEstimateDate(millis: Long): String = estimateDateFormatter.format(Date(millis))
+private fun formatEstimateMoney(amount: BigDecimal): String =
     NumberFormat.getCurrencyInstance(Locale.getDefault()).format(amount)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EstimatesScreen(
     navController: NavController,
-    viewModel: InvoicesViewModel = viewModel()
+    viewModel: EstimatesViewModel = viewModel()
 ) {
-    var selectedFilter by remember { mutableStateOf<InvoiceStatus?>(null) } // null = "All"
+    var selectedFilter by remember { mutableStateOf<EstimateStatus?>(null) } // null = "All"
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    val allInvoices: List<InvoiceUiModel> = viewModel.invoices.collectAsState(initial = emptyList()).value
+    val allEstimates: List<EstimateUiModel> = viewModel.estimates.collectAsState(initial = emptyList()).value
 
-    val filteredInvoices = allInvoices
+    val filteredEstimates = allEstimates
         .filter { selectedFilter == null || it.status == selectedFilter }
         .filter {
             searchQuery.isBlank() ||
-                    it.invoiceNumber.contains(searchQuery, ignoreCase = true) ||
+                    it.estimateNumber.contains(searchQuery, ignoreCase = true) ||
                     it.clientName.contains(searchQuery, ignoreCase = true)
         }
 
     Scaffold(
         topBar = {
-            InvoicesTopAppBar(
+            EstimatesTopAppBar(
                 isSearchActive = isSearchActive,
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it },
@@ -101,14 +76,14 @@ fun EstimatesScreen(
         },
         floatingActionButton = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                if (filteredInvoices.isEmpty()) {
-                    BobbingHint(text = "Add your first invoice")
+                if (filteredEstimates.isEmpty()) {
+                    BobbingHint(text = "Add your first estimate")
                     Spacer(modifier = Modifier.height(4.dp))
                 }
                 FloatingActionButton(onClick = {
-                    // TODO: navController.navigate("add_invoice")
+                    // TODO: navController.navigate("add_estimate")
                 }) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Invoice")
+                    Icon(Icons.Default.Add, contentDescription = "Add Estimate")
                 }
             }
         },
@@ -116,15 +91,15 @@ fun EstimatesScreen(
     ) { innerPadding ->
         Column(modifier = Modifier.padding(innerPadding)) {
 
-            StatusFilterRow(
+            EstimateStatusFilterRow(
                 selected = selectedFilter,
                 onSelect = { selectedFilter = it }
             )
 
-            if (filteredInvoices.isEmpty()) {
+            if (filteredEstimates.isEmpty()) {
                 EmptyState(
-                    icon = Icons.Default.ReceiptLong,
-                    itemName = "invoice",
+                    icon = Icons.Default.Description,
+                    itemName = "estimate",
                     modifier = Modifier.weight(1f)
                 )
             } else {
@@ -133,9 +108,9 @@ fun EstimatesScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(filteredInvoices, key = { it.id }) { invoice ->
-                        InvoiceListItem(invoice = invoice, onClick = {
-                            // TODO: navController.navigate("invoice_detail/${invoice.id}")
+                    items(filteredEstimates, key = { it.id }) { estimate ->
+                        EstimateListItem(estimate = estimate, onClick = {
+                            // TODO: navController.navigate("estimate_detail/${estimate.id}")
                         })
                     }
                 }
@@ -144,13 +119,9 @@ fun EstimatesScreen(
     }
 }
 
-/**
- * Top bar that toggles between its normal state (title + search/filter/sort icons)
- * and an active search state (back arrow + text field + clear button).
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InvoicesTopAppBar(
+fun EstimatesTopAppBar(
     isSearchActive: Boolean,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
@@ -159,9 +130,7 @@ fun InvoicesTopAppBar(
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(isSearchActive) {
-        if (isSearchActive) {
-            focusRequester.requestFocus()
-        }
+        if (isSearchActive) focusRequester.requestFocus()
     }
 
     TopAppBar(
@@ -170,7 +139,7 @@ fun InvoicesTopAppBar(
                 TextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
-                    placeholder = { Text("Search invoices...") },
+                    placeholder = { Text("Search estimates...") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     modifier = Modifier
@@ -184,7 +153,7 @@ fun InvoicesTopAppBar(
                     )
                 )
             } else {
-                Text("Invoices", fontWeight = FontWeight.Bold)
+                Text("Estimates", fontWeight = FontWeight.Bold)
             }
         },
         navigationIcon = {
@@ -217,17 +186,17 @@ fun InvoicesTopAppBar(
 }
 
 @Composable
-fun StatusFilterRow(
-    selected: InvoiceStatus?,
-    onSelect: (InvoiceStatus?) -> Unit
+fun EstimateStatusFilterRow(
+    selected: EstimateStatus?,
+    onSelect: (EstimateStatus?) -> Unit
 ) {
-    val options: List<Pair<String, InvoiceStatus?>> = listOf(
+    val options: List<Pair<String, EstimateStatus?>> = listOf(
         "All" to null,
-        "Unpaid" to InvoiceStatus.UNPAID,
-        "Partially Paid" to InvoiceStatus.PARTIALLY_PAID,
-        "Overdue" to InvoiceStatus.OVERDUE,
-        "Paid" to InvoiceStatus.PAID,
-        "Cancelled" to InvoiceStatus.CANCELLED
+        "Draft" to EstimateStatus.DRAFT,
+        "Sent" to EstimateStatus.SENT,
+        "Accepted" to EstimateStatus.ACCEPTED,
+        "Rejected" to EstimateStatus.REJECTED,
+        "Expired" to EstimateStatus.EXPIRED
     )
 
     Row(
@@ -247,14 +216,9 @@ fun StatusFilterRow(
     }
 }
 
-/**
- * Tabular-style card: header row (number + status), then a grid of
- * labeled fields — dates, item/payment counts, and the full money
- * breakdown including what's still owed.
- */
 @Composable
-fun InvoiceListItem(invoice: InvoiceUiModel, onClick: () -> Unit) {
-    val isOverdue = invoice.status == InvoiceStatus.OVERDUE
+fun EstimateListItem(estimate: EstimateUiModel, onClick: () -> Unit) {
+    val isExpired = estimate.status == EstimateStatus.EXPIRED
 
     Card(
         onClick = onClick,
@@ -264,7 +228,6 @@ fun InvoiceListItem(invoice: InvoiceUiModel, onClick: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
 
-            // Header: invoice number, client name, status badge
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -272,98 +235,68 @@ fun InvoiceListItem(invoice: InvoiceUiModel, onClick: () -> Unit) {
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = invoice.invoiceNumber,
+                        text = estimate.estimateNumber,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = invoice.clientName,
+                        text = estimate.clientName,
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.Gray
                     )
                 }
-                StatusBadge(status = invoice.status)
+                EstimateStatusBadge(status = estimate.status)
             }
 
             Spacer(modifier = Modifier.height(10.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Row 1: dates + counts
             Row(modifier = Modifier.fillMaxWidth()) {
-                InfoCell(
+                EstimateInfoCell(
                     label = "Issued",
-                    value = formatDate(invoice.issueDate),
+                    value = formatEstimateDate(estimate.issueDate),
                     modifier = Modifier.weight(1f)
                 )
-                InfoCell(
-                    label = "Due",
-                    value = formatDate(invoice.dueDate),
-                    valueColor = if (isOverdue) MaterialTheme.colorScheme.error else Color.Unspecified,
+                EstimateInfoCell(
+                    label = "Expires",
+                    value = formatEstimateDate(estimate.expiryDate),
+                    valueColor = if (isExpired) MaterialTheme.colorScheme.error else Color.Unspecified,
                     modifier = Modifier.weight(1f)
                 )
-                InfoCell(
+                EstimateInfoCell(
                     label = "Items",
-                    value = invoice.itemCount.toString(),
-                    modifier = Modifier.weight(0.5f)
-                )
-                InfoCell(
-                    label = "Payments",
-                    value = invoice.paymentCount.toString(),
+                    value = estimate.itemCount.toString(),
                     modifier = Modifier.weight(0.6f)
                 )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Row 2: money breakdown, including what's paid vs. still owed
             Row(modifier = Modifier.fillMaxWidth()) {
-                InfoCell(
+                EstimateInfoCell(
+                    label = "Subtotal",
+                    value = formatEstimateMoney(estimate.subtotal),
+                    modifier = Modifier.weight(1f)
+                )
+                EstimateInfoCell(
+                    label = "Tax",
+                    value = formatEstimateMoney(estimate.totalTax),
+                    modifier = Modifier.weight(1f)
+                )
+                EstimateInfoCell(
                     label = "Total",
-                    value = formatMoney(invoice.total),
-                    modifier = Modifier.weight(1f)
-                )
-                InfoCell(
-                    label = "Paid",
-                    value = formatMoney(invoice.amountPaid),
-                    valueColor = Color(0xFF2E7D32),
-                    modifier = Modifier.weight(1f)
-                )
-                InfoCell(
-                    label = "Due",
-                    value = formatMoney(invoice.amountDue),
-                    valueColor = if (invoice.amountDue > BigDecimal.ZERO)
-                        MaterialTheme.colorScheme.error
-                    else
-                        Color(0xFF2E7D32),
+                    value = formatEstimateMoney(estimate.total),
                     valueWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f)
                 )
-            }
-
-            if (isOverdue) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "Past due — ${formatMoney(invoice.amountDue)} outstanding",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
             }
         }
     }
 }
 
 @Composable
-private fun InfoCell(
+private fun EstimateInfoCell(
     label: String,
     value: String,
     modifier: Modifier = Modifier,
@@ -371,11 +304,7 @@ private fun InfoCell(
     valueWeight: FontWeight = FontWeight.SemiBold
 ) {
     Column(modifier = modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = Color.Gray
-        )
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = Color.Gray)
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
@@ -386,13 +315,13 @@ private fun InfoCell(
 }
 
 @Composable
-fun StatusBadge(status: InvoiceStatus) {
+fun EstimateStatusBadge(status: EstimateStatus) {
     val (bg, fg) = when (status) {
-        InvoiceStatus.UNPAID -> Color(0xFFE2E3E5) to Color(0xFF383D41)
-        InvoiceStatus.PARTIALLY_PAID -> Color(0xFFFFF3CD) to Color(0xFF8A6D3B)
-        InvoiceStatus.OVERDUE -> Color(0xFFF8D7DA) to Color(0xFF721C24)
-        InvoiceStatus.PAID -> Color(0xFFD4EDDA) to Color(0xFF155724)
-        InvoiceStatus.CANCELLED -> Color(0xFFE2E3E5) to Color(0xFF6C757D)
+        EstimateStatus.DRAFT -> Color(0xFFE2E3E5) to Color(0xFF383D41)
+        EstimateStatus.SENT -> Color(0xFFCCE5FF) to Color(0xFF004085)
+        EstimateStatus.ACCEPTED -> Color(0xFFD4EDDA) to Color(0xFF155724)
+        EstimateStatus.REJECTED -> Color(0xFFF8D7DA) to Color(0xFF721C24)
+        EstimateStatus.EXPIRED -> Color(0xFFE2E3E5) to Color(0xFF6C757D)
     }
 
     Box(

@@ -9,7 +9,7 @@ data class EstimateUiModel(
     val clientName: String,
     val status: EstimateStatus,
     val issueDate: Long,
-    val expiryDate: Long,
+    val expiryDate: Long,       // ASSUMPTION: EstimateEntity has expiryDate instead of dueDate
     val itemCount: Int,
     val subtotal: BigDecimal,
     val totalTax: BigDecimal,
