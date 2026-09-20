@@ -1,20 +1,22 @@
-// com.example.invoicemaker.data.local.dao.BusinessInfoDao.kt
 package com.example.invoicemaker.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Delete
 import androidx.room.Query
-import androidx.room.Upsert
-import com.example.invoicemaker.data.local.entity.BusinessInfoEntity
-import kotlinx.coroutines.flow.Flow
+import androidx.room.Update
+import com.example.invoicemaker.data.local.entity.BusinessInfo
 
 @Dao
 interface BusinessInfoDao {
-    @Query("SELECT * FROM business_info WHERE id = 1")
-    fun observe(): Flow<BusinessInfoEntity?>
 
-    @Query("SELECT * FROM business_info WHERE id = 1")
-    suspend fun get(): BusinessInfoEntity?
+    @Insert
+    suspend fun insertBusinessInfo(client: BusinessInfo)
 
-    @Upsert
-    suspend fun save(businessInfo: BusinessInfoEntity)
+    @Update
+    suspend fun updateBusinessInfo(client: BusinessInfo)
+
+    @Query("DELETE FROM clients WHERE id = :id")
+    suspend fun deleteBusinessInfo(id: Long)
+
 }

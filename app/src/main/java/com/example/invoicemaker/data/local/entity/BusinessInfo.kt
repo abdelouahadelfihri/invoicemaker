@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
  * Always stored/read with id = 0 (single-row table).
  */
 @Entity(tableName = "business_info")
-data class BusinessInfoEntity(
+data class BusinessInfo(
     @PrimaryKey
     val id: Int = 0,
     val businessName: String = "",

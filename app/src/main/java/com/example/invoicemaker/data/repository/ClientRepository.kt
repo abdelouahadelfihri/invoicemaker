@@ -4,13 +4,25 @@ import com.example.invoicemaker.data.local.dao.ClientDao
 import com.example.invoicemaker.data.local.entity.Client
 import kotlinx.coroutines.flow.Flow
 
-class ClientRepository(private val clientDao: ClientDao) {
+class ClientRepository(
+    private val clientDao: ClientDao
+) {
 
-    fun observeAll(): Flow<List<Client>> = clientDao.observeAll()
+    fun observeAllClients(): Flow<List<Client>> =
+        clientDao.observeAll()
 
-    fun findClient(client: Client): Flow<List<Client>> = clientDao.findClient(client) // UNCONFIRMED: unusual signature, see note above
+    fun searchClients(query: String): Flow<List<Client>> =
+        clientDao.searchClients(query)
 
-    suspend fun insert(client: Client) = clientDao.insertClient(client)
+    suspend fun insertClient(client: Client) {
+        clientDao.insertClient(client)
+    }
 
-    suspend fun delete(id: Long) = clientDao.deleteClient(id) // FIX: was deleteClient(name) with an undefined `name`; renamed + fixed type to Long
+    suspend fun updateClient(client: Client) {
+        clientDao.updateClient(client)
+    }
+
+    suspend fun deleteClient(id: Long) {
+        clientDao.deleteClient(id)
+    }
 }
