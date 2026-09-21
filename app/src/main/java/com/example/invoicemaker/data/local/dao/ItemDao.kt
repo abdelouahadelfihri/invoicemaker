@@ -34,5 +34,5 @@ interface ItemDao {
     suspend fun update(item: Item)
 
     @Delete
-    suspend fun delete(item: Item)
+    suspend fun delete(id: Long)
 }
