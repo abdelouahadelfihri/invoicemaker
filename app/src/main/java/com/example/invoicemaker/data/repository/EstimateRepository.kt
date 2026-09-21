@@ -28,7 +28,7 @@ class EstimateRepository(
             estimateDao.update(estimate)
             estimate.id
         }
-        estimateItemDao.deleteForEstimate(id)
+        estimateItemDao.deleteAllForEstimate(id)
         estimateItemDao.insertAll(items.map { it.copy(estimateId = id) })
         return id
     }
