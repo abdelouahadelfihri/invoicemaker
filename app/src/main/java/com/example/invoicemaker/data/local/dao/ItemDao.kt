@@ -33,6 +33,6 @@ interface ItemDao {
     @Update
     suspend fun update(item: Item)
 
-    @Delete
+    @Query("DELETE FROM items WHERE id = :id")
     suspend fun delete(id: Long)
 }
