@@ -29,7 +29,7 @@ class InvoicesViewModel(application: Application) : AndroidViewModel(application
 
     val invoices: Flow<List<InvoiceUiModel>> = combine(
         invoiceRepository.observeAll(),
-        clientRepository.observeAll(), // ASSUMPTION: method exists
+        clientRepository.observeAllClients(), // ASSUMPTION: method exists
         invoiceItemRepository.observeAll(),
         paymentRepository.observeAll()
     ) { invoiceList, clients, allItems, allPayments ->
