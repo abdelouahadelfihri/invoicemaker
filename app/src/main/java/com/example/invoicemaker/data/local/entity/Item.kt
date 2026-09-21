@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
     tableName = "items",
     indices = [Index(value = ["sku"], unique = true)]
 )
-data class ItemEntity(
+data class Item(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val description: String? = null,

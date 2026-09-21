@@ -1,12 +1,28 @@
 package com.example.invoicemaker.data.repository
 
+import com.example.invoicemaker.data.local.dao.ItemDao
+import com.example.invoicemaker.data.local.entity.Item
 import kotlinx.coroutines.flow.Flow
 
-// interface — already inside ItemsViewModel.kt
-interface ItemRepository {
-    fun getAllItemsFlow(): Flow<List<Item>>
-    suspend fun getItemById(id: Long): Item?
-    suspend fun insertItem(item: Item): Long
-    suspend fun updateItem(item: Item)
-    suspend fun deleteItem(itemId: Long)
+class ItemRepository(
+    private val itemDao: ItemDao
+) {
+
+    fun observeAllItems(): Flow<List<Item>> =
+        itemDao.observeAll()
+
+    fun searchItems(query: String): Flow<List<Item>> =
+        itemDao.searchItems(query)
+
+    suspend fun insertItem(client: Item) {
+        itemDao.insertItem(client)
+    }
+
+    suspend fun updateItem(client: Item) {
+        itemDao.updateItem(client)
+    }
+
+    suspend fun deleteItem(id: Long) {
+        itemDao.deleteItem(id)
+    }
 }

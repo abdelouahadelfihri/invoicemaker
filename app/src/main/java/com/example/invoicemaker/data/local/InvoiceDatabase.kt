@@ -17,7 +17,7 @@ import com.example.invoicemaker.data.local.entity.EstimateEntity
 import com.example.invoicemaker.data.local.entity.EstimateItemEntity
 import com.example.invoicemaker.data.local.entity.InvoiceEntity
 import com.example.invoicemaker.data.local.entity.InvoiceItemEntity
-import com.example.invoicemaker.data.local.entity.ItemEntity
+import com.example.invoicemaker.data.local.entity.Item
 import com.example.invoicemaker.data.local.entity.PaymentEntity
 
 @Database(
@@ -28,7 +28,7 @@ import com.example.invoicemaker.data.local.entity.PaymentEntity
         PaymentEntity::class,
         EstimateEntity::class,
         EstimateItemEntity::class,
-        ItemEntity::class
+        Item::class
     ],
     version = 1,
     exportSchema = false

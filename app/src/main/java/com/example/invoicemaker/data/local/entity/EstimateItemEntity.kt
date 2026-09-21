@@ -15,7 +15,7 @@ import androidx.room.PrimaryKey
             onDelete = ForeignKey.CASCADE   // delete lines when estimate is deleted
         ),
         ForeignKey(
-            entity = ItemEntity::class,
+            entity = Item::class,
             parentColumns = ["id"],
             childColumns = ["itemId"],
             onDelete = ForeignKey.SET_NULL  // keep the line even if catalog item is removed

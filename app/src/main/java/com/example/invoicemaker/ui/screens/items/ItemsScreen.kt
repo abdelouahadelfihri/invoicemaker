@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.invoicemaker.data.local.entity.ItemEntity
+import com.example.invoicemaker.data.local.entity.Item
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +29,7 @@ fun ItemsScreen(
     onAddItem: () -> Unit,
     onSearchClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    onItemClick: (ItemEntity) -> Unit = {},
+    onItemClick: (Item) -> Unit = {},
     viewModel: ItemsViewModel = viewModel(
         factory = ItemsViewModel.factory(itemRepository)
     )
@@ -129,8 +129,8 @@ private fun EmptyItemsState(modifier: Modifier = Modifier) {
 
 @Composable
 private fun ItemsList(
-    items: List<ItemEntity>,
-    onItemClick: (ItemEntity) -> Unit,
+    items: List<Item>,
+    onItemClick: (Item) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -147,7 +147,7 @@ private fun ItemsList(
 }
 
 @Composable
-private fun ItemRow(item: ItemEntity, onClick: () -> Unit) {
+private fun ItemRow(item: Item, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
@@ -205,13 +205,13 @@ private fun ItemsListPreview() {
     MaterialTheme {
         ItemsList(
             items = listOf(
-                ItemEntity(
+                Item(
                     id = 1,
                     name = "Consulting Hour",
                     unit = "hr",
                     unitPrice = 450.00
                 ),
-                ItemEntity(
+                Item(
                     id = 2,
                     name = "Installation Kit",
                     unit = "pcs",

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.invoicemaker.data.local.entity.ItemEntity
+import com.example.invoicemaker.data.local.entity.Item
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,10 +21,10 @@ import kotlinx.coroutines.launch
 // ---------------------------------------------------------------------------
 
 interface ItemRepository {
-    fun getAllItemsFlow(): Flow<List<ItemEntity>>
-    suspend fun getItemById(id: Long): ItemEntity?
-    suspend fun insertItem(item: ItemEntity): Long
-    suspend fun updateItem(item: ItemEntity)
+    fun getAllItemsFlow(): Flow<List<Item>>
+    suspend fun getItemById(id: Long): Item?
+    suspend fun insertItem(item: Item): Long
+    suspend fun updateItem(item: Item)
     suspend fun deleteItem(itemId: Long)
 }
 
@@ -45,7 +45,7 @@ data class ItemFilter(
 // ---------------------------------------------------------------------------
 
 data class ItemDetailState(
-    val item: ItemEntity? = null,
+    val item: Item? = null,
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
     val errorMessage: String? = null
@@ -65,7 +65,7 @@ class ItemsViewModel(
     val filter: StateFlow<ItemFilter> = _filter.asStateFlow()
 
     /** Drives `viewModel.items.collectAsStateWithLifecycle()` in Compose. */
-    val items: StateFlow<List<ItemEntity>> = combine(
+    val items: StateFlow<List<Item>> = combine(
         itemRepository.getAllItemsFlow(),
         _filter,
         ::applyFilter
@@ -75,7 +75,7 @@ class ItemsViewModel(
         initialValue = emptyList()
     )
 
-    private fun applyFilter(itemList: List<ItemEntity>, filter: ItemFilter): List<ItemEntity> {
+    private fun applyFilter(itemList: List<Item>, filter: ItemFilter): List<Item> {
         return itemList
             .asSequence()
             .filter { item -> !filter.activeOnly || item.isActive }
@@ -122,7 +122,7 @@ class ItemsViewModel(
     }
 
     fun startNewItem() {
-        _detailState.value = ItemDetailState(item = ItemEntity(name = "", unit = "", unitPrice = 0.0))
+        _detailState.value = ItemDetailState(item = Item(name = "", unit = "", unitPrice = 0.0))
     }
 
     fun updateName(name: String) {
