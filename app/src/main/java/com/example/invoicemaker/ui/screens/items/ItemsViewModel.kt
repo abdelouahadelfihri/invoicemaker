@@ -16,7 +16,7 @@ class ItemsViewModel(application: Application) : AndroidViewModel(application) {
     private val repository: ItemRepository =
         ItemRepository(InvoiceDatabase.getInstance(application).itemDao())
 
-    val clients: StateFlow<List<Item>> =
+    val items: StateFlow<List<Item>> =
         repository.observeAllItems()
             .stateIn(
                 scope = viewModelScope,
@@ -24,12 +24,12 @@ class ItemsViewModel(application: Application) : AndroidViewModel(application) {
                 initialValue = emptyList()
             )
 
-    fun insert(client: Item) {
-        viewModelScope.launch { repository.insertItem(client) }
+    fun insert(item: Item) {
+        viewModelScope.launch { repository.insertItem(item) }
     }
 
-    fun update(client: Item) {
-        viewModelScope.launch { repository.updateItem(client) }
+    fun update(item: Item) {
+        viewModelScope.launch { repository.updateItem(item) }
     }
 
     fun delete(id: Long) {

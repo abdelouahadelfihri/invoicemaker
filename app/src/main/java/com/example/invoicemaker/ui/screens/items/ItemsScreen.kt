@@ -9,7 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.*
@@ -26,43 +26,48 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.invoicemaker.data.local.entity.Client
+import com.example.invoicemaker.data.local.entity.Item
+import java.text.NumberFormat
+import java.util.Locale
 
-private enum class ClientSortOption(val label: String) {
+private enum class ItemSortOption(val label: String) {
     NAME_ASC("Name (A–Z)"),
     NAME_DESC("Name (Z–A)")
 }
 
+private fun formatPrice(price: Double): String =
+    NumberFormat.getCurrencyInstance(Locale.getDefault()).format(price)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemsScreen(
-    onAddClient: () -> Unit,
+    onAddItem: () -> Unit,
     onDeleteClick: () -> Unit,
-    onClientClick: (Client) -> Unit = {},
+    onItemClick: (Item) -> Unit = {},
     viewModel: ItemsViewModel = viewModel()
 ) {
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
-    var sortOption by remember { mutableStateOf(ClientSortOption.NAME_ASC) }
+    var sortOption by remember { mutableStateOf(ItemSortOption.NAME_ASC) }
 
-    val allClients by viewModel.clients.collectAsStateWithLifecycle()
+    val allItems by viewModel.items.collectAsStateWithLifecycle()
 
-    val filteredClients = allClients
+    val filteredItems = allItems
         .filter {
             searchQuery.isBlank() ||
                     it.name.contains(searchQuery, ignoreCase = true) ||
-                    (it.phone?.contains(searchQuery, ignoreCase = true) == true)
+                    (it.sku?.contains(searchQuery, ignoreCase = true) == true)
         }
         .let { list ->
             when (sortOption) {
-                ClientSortOption.NAME_ASC -> list.sortedBy { it.name.lowercase() }
-                ClientSortOption.NAME_DESC -> list.sortedByDescending { it.name.lowercase() }
+                ItemSortOption.NAME_ASC -> list.sortedBy { it.name.lowercase() }
+                ItemSortOption.NAME_DESC -> list.sortedByDescending { it.name.lowercase() }
             }
         }
 
     Scaffold(
         topBar = {
-            ClientsTopBar(
+            ItemsTopBar(
                 isSearchActive = isSearchActive,
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it },
@@ -77,24 +82,24 @@ fun ItemsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onAddClient,
+                onClick = onAddItem,
                 containerColor = Color(0xFF2E7D32)
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add client",
+                    contentDescription = "Add item",
                     tint = Color.White
                 )
             }
         },
         floatingActionButtonPosition = FabPosition.End
     ) { innerPadding ->
-        if (filteredClients.isEmpty()) {
-            EmptyClientsState(modifier = Modifier.padding(innerPadding))
+        if (filteredItems.isEmpty()) {
+            EmptyItemsState(modifier = Modifier.padding(innerPadding))
         } else {
-            ClientsList(
-                clients = filteredClients,
-                onClientClick = onClientClick,
+            ItemsList(
+                items = filteredItems,
+                onItemClick = onItemClick,
                 modifier = Modifier.padding(innerPadding)
             )
         }
@@ -103,14 +108,14 @@ fun ItemsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ClientsTopBar(
+private fun ItemsTopBar(
     isSearchActive: Boolean,
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     onSearchActiveChange: (Boolean) -> Unit,
     onDeleteClick: () -> Unit,
-    sortOption: ClientSortOption,
-    onSortOptionChange: (ClientSortOption) -> Unit
+    sortOption: ItemSortOption,
+    onSortOptionChange: (ItemSortOption) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
     var sortMenuExpanded by remember { mutableStateOf(false) }
@@ -125,7 +130,7 @@ private fun ClientsTopBar(
                 TextField(
                     value = searchQuery,
                     onValueChange = onSearchQueryChange,
-                    placeholder = { Text("Search clients...") },
+                    placeholder = { Text("Search items...") },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     modifier = Modifier
@@ -139,7 +144,7 @@ private fun ClientsTopBar(
                     )
                 )
             } else {
-                Text(text = "Clients", fontWeight = FontWeight.Bold)
+                Text(text = "Items", fontWeight = FontWeight.Bold)
             }
         },
         navigationIcon = {
@@ -168,7 +173,7 @@ private fun ClientsTopBar(
                         expanded = sortMenuExpanded,
                         onDismissRequest = { sortMenuExpanded = false }
                     ) {
-                        ClientSortOption.entries.forEach { option ->
+                        ItemSortOption.entries.forEach { option ->
                             DropdownMenuItem(
                                 text = { Text(option.label) },
                                 onClick = {
@@ -188,7 +193,7 @@ private fun ClientsTopBar(
 }
 
 @Composable
-private fun EmptyClientsState(modifier: Modifier = Modifier) {
+private fun EmptyItemsState(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -198,18 +203,18 @@ private fun EmptyClientsState(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Person,
+                imageVector = Icons.Default.Inventory2,
                 contentDescription = null,
                 modifier = Modifier.size(72.dp),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "No Clients yet",
+                text = "No Items yet",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium
             )
             Text(
-                text = "Tap \"+\" to create new client",
+                text = "Tap \"+\" to create new item",
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -218,9 +223,9 @@ private fun EmptyClientsState(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ClientsList(
-    clients: List<Client>,
-    onClientClick: (Client) -> Unit,
+private fun ItemsList(
+    items: List<Item>,
+    onItemClick: (Item) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -228,15 +233,15 @@ private fun ClientsList(
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(clients, key = { it.id }) { client ->
-            ClientRow(client = client, onClick = { onClientClick(client) })
+        items(items, key = { it.id }) { item ->
+            ItemRow(item = item, onClick = { onItemClick(item) })
         }
         item { Spacer(modifier = Modifier.height(72.dp)) }
     }
 }
 
 @Composable
-private fun ClientRow(client: Client, onClick: () -> Unit) {
+private fun ItemRow(item: Item, onClick: () -> Unit) {
     Card(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
@@ -244,13 +249,13 @@ private fun ClientRow(client: Client, onClick: () -> Unit) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.Person,
+                imageVector = Icons.Default.Inventory2,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary
             )
-            Column {
-                Text(text = client.name, fontWeight = FontWeight.Medium)
-                client.phone?.let {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = item.name, fontWeight = FontWeight.Medium)
+                item.sku?.let {
                     Text(
                         text = it,
                         fontSize = 13.sp,
@@ -258,26 +263,31 @@ private fun ClientRow(client: Client, onClick: () -> Unit) {
                     )
                 }
             }
+            Text(
+                text = "${formatPrice(item.unitPrice)} / ${item.unit}",
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 13.sp
+            )
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun ClientsListEmptyPreview() {
-    MaterialTheme { EmptyClientsState() }
+private fun ItemsListEmptyPreview() {
+    MaterialTheme { EmptyItemsState() }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun ClientsListPreview() {
+private fun ItemsListPreview() {
     MaterialTheme {
-        ClientsList(
-            clients = listOf(
-                Client(id = 1, name = "Ahmed Bensaid", phone = "+212 6 12 34 56 78"),
-                Client(id = 2, name = "Fatima Zahra", phone = "+212 6 98 76 54 32")
+        ItemsList(
+            items = listOf(
+                Item(id = 1, name = "Consulting Hour", sku = "CONS-01", unit = "hr", unitPrice = 450.0),
+                Item(id = 2, name = "Laptop Stand", sku = "ACC-114", unit = "pcs", unitPrice = 120.0)
             ),
-            onClientClick = {}
+            onItemClick = {}
         )
     }
 }
