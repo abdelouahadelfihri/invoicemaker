@@ -2,36 +2,37 @@ package com.example.invoicemaker.ui.screens.clients
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
+import com.example.invoicemaker.data.local.InvoiceDatabase
 import com.example.invoicemaker.data.local.entity.Client
 import com.example.invoicemaker.data.repository.ClientRepository
-import com.example.invoicemaker.data.local.AppDatabase
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class ClientsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: ClientRepository
-    val allClients: LiveData<List<Client>>
-    val searchResults: MutableLiveData<List<Client>>
+    private val repository: ClientRepository =
+        ClientRepository(InvoiceDatabase.getInstance(application).clientDao())
 
-    init {
-        val productDb = AppDatabase.getInstance(application)
-        val productDao = productDb.productDao()
-        repository = ClientRepository(productDao)
+    val clients: StateFlow<List<Client>> =
+        repository.observeAllClients()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
 
-        allClients = repository.allClients
-        searchResults = repository.searchResults
+    fun insertClient(client: Client) {
+        viewModelScope.launch { repository.insertClient(client) }
     }
 
-    fun insertClient(product: Client) {
-        repository.insertClient(product)
+    fun updateClient(client: Client) {
+        viewModelScope.launch { repository.updateClient(client) }
     }
 
-    fun findClient(name: String) {
-        repository.findClient(name)
-    }
-
-    fun deleteClient(name: String) {
-        repository.deleteClient(name)
+    fun deleteClient(id: Long) {
+        viewModelScope.launch { repository.deleteClient(id) }
     }
 }

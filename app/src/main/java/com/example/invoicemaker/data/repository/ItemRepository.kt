@@ -14,12 +14,12 @@ class ItemRepository(
     fun searchItems(query: String): Flow<List<Item>> =
         itemDao.observeSearch(query)
 
-    suspend fun insertItem(client: Item) {
-        itemDao.insert(client)
+    suspend fun insertItem(item: Item) {
+        itemDao.insert(item)
     }
 
-    suspend fun updateItem(client: Item) {
-        itemDao.update(client)
+    suspend fun updateItem(item: Item) {
+        itemDao.update(item)
     }
 
     suspend fun deleteItem(id: Long) {
