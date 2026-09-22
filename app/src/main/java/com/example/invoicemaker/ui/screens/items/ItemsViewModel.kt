@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 class ItemsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: ItemRepository =
-        ItemRepository(InvoiceDatabase.getInstance(application).clientDao())
+        ItemRepository(InvoiceDatabase.getInstance(application).itemDao())
 
     val clients: StateFlow<List<Item>> =
         repository.observeAllItems()
