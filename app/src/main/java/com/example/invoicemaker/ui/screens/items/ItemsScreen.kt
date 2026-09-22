@@ -1,4 +1,4 @@
-package com.example.invoicemaker.ui.screens.clients
+package com.example.invoicemaker.ui.screens.items
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -35,11 +35,11 @@ private enum class ClientSortOption(val label: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClientsScreen(
+fun ItemsScreen(
     onAddClient: () -> Unit,
     onDeleteClick: () -> Unit,
     onClientClick: (Client) -> Unit = {},
-    viewModel: ClientsViewModel = viewModel()
+    viewModel: ItemsViewModel = viewModel()
 ) {
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }

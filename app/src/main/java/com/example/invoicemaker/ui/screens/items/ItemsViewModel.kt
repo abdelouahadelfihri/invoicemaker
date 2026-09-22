@@ -1,38 +1,38 @@
-package com.example.invoicemaker.ui.screens.clients
+package com.example.invoicemaker.ui.screens.items
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.invoicemaker.data.local.InvoiceDatabase
-import com.example.invoicemaker.data.local.entity.Client
-import com.example.invoicemaker.data.repository.ClientRepository
+import com.example.invoicemaker.data.local.entity.Item
+import com.example.invoicemaker.data.repository.ItemRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class ClientsViewModel(application: Application) : AndroidViewModel(application) {
+class ItemsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: ClientRepository =
-        ClientRepository(InvoiceDatabase.getInstance(application).clientDao())
+    private val repository: ItemRepository =
+        ItemRepository(InvoiceDatabase.getInstance(application).clientDao())
 
-    val clients: StateFlow<List<Client>> =
-        repository.observeAllClients()
+    val clients: StateFlow<List<Item>> =
+        repository.observeAllItems()
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyList()
             )
 
-    fun insertClient(client: Client) {
-        viewModelScope.launch { repository.insertClient(client) }
+    fun insert(client: Item) {
+        viewModelScope.launch { repository.insertItem(client) }
     }
 
-    fun updateClient(client: Client) {
-        viewModelScope.launch { repository.updateClient(client) }
+    fun update(client: Item) {
+        viewModelScope.launch { repository.updateItem(client) }
     }
 
-    fun deleteClient(id: Long) {
-        viewModelScope.launch { repository.deleteClient(id) }
+    fun delete(id: Long) {
+        viewModelScope.launch { repository.deleteItem(id) }
     }
 }
