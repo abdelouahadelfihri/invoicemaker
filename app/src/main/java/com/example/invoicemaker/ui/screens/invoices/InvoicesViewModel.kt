@@ -12,8 +12,10 @@ import com.example.invoicemaker.data.repository.InvoiceItemRepository
 import com.example.invoicemaker.data.repository.InvoiceRepository
 import com.example.invoicemaker.data.repository.PaymentRepository
 import com.example.invoicemaker.data.repository.ClientRepository // ASSUMPTION: exists, mirrors other repositories
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -27,7 +29,7 @@ class InvoicesViewModel(application: Application) : AndroidViewModel(application
     private val paymentRepository = PaymentRepository(dao = db.paymentDao())
     private val clientRepository = ClientRepository(clientDao = db.clientDao()) // ASSUMPTION: constructor shape
 
-    val invoices: Flow<List<InvoiceUiModel>> = combine(
+    val invoices: StateFlow<List<InvoiceUiModel>> = combine(
         invoiceRepository.observeAll(),
         clientRepository.observeAllClients(), // ASSUMPTION: method exists
         invoiceItemRepository.observeAll(),
@@ -45,7 +47,11 @@ class InvoicesViewModel(application: Application) : AndroidViewModel(application
                 payments = paymentsByInvoiceId[invoice.id].orEmpty()
             )
         }
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     fun deleteInvoice(id: Long) {
         viewModelScope.launch { invoiceRepository.deleteInvoice(id) }
