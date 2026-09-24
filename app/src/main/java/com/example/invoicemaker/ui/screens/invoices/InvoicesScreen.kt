@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,8 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.invoicemaker.data.local.entity.InvoiceStatus
 import com.example.invoicemaker.ui.components.BobbingHint
 import com.example.invoicemaker.ui.components.EmptyState
@@ -37,7 +38,6 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.foundation.lazy.items
 
 data class InvoiceUiModel(
     val id: Long,
@@ -63,14 +63,15 @@ private fun formatMoney(amount: BigDecimal): String =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InvoicesScreen(
-    navController: NavController,
+    onAddInvoice: () -> Unit,
+    onInvoiceClick: (InvoiceUiModel) -> Unit,
     viewModel: InvoicesViewModel = viewModel()
 ) {
     var selectedFilter by remember { mutableStateOf<InvoiceStatus?>(null) } // null = "All"
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    val allInvoices: List<InvoiceUiModel> = viewModel.invoices.collectAsState(initial = emptyList()).value
+    val allInvoices: List<InvoiceUiModel> by viewModel.invoices.collectAsStateWithLifecycle()
 
     val filteredInvoices = allInvoices
         .filter { selectedFilter == null || it.status == selectedFilter }
@@ -98,9 +99,7 @@ fun InvoicesScreen(
                     BobbingHint(text = "Add your first invoice")
                     Spacer(modifier = Modifier.height(4.dp))
                 }
-                FloatingActionButton(onClick = {
-                    // TODO: navController.navigate("add_invoice")
-                }) {
+                FloatingActionButton(onClick = onAddInvoice) {
                     Icon(Icons.Default.Add, contentDescription = "Add Invoice")
                 }
             }
@@ -127,9 +126,10 @@ fun InvoicesScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     items(filteredInvoices, key = { it.id }) { invoice ->
-                        InvoiceListItem(invoice = invoice, onClick = {
-                            // TODO: navController.navigate("invoice_detail/${invoice.id}")
-                        })
+                        InvoiceListItem(
+                            invoice = invoice,
+                            onClick = { onInvoiceClick(invoice) }
+                        )
                     }
                 }
             }

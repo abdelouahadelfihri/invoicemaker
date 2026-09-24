@@ -10,8 +10,10 @@ import com.example.invoicemaker.data.repository.EstimateRepository
 import com.example.invoicemaker.data.repository.ClientRepository // ASSUMPTION: same as InvoicesViewModel
 import com.example.invoicemaker.data.local.entity.EstimateStatus
 import com.example.invoicemaker.ui.screens.estimates.EstimateUiModel
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -27,9 +29,9 @@ class EstimatesViewModel(application: Application) : AndroidViewModel(applicatio
     )
     private val clientRepository = ClientRepository(clientDao = db.clientDao())
 
-    val estimates: Flow<List<EstimateUiModel>> = combine(
+    val estimates: StateFlow<List<EstimateUiModel>> = combine(
         estimateRepository.observeAll(),
-        clientRepository.observeAll()
+        clientRepository.observeAllClients()
     ) { estimateList, clients ->
         val clientNameById = clients.associateBy({ it.id }, { it.name })
 
@@ -43,7 +45,11 @@ class EstimatesViewModel(application: Application) : AndroidViewModel(applicatio
                 items = items
             )
         }
-    }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
     fun deleteEstimate(id: Long) {
         viewModelScope.launch { estimateRepository.deleteById(id) }

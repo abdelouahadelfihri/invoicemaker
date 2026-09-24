@@ -27,8 +27,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.invoicemaker.data.local.entity.EstimateStatus
 import com.example.invoicemaker.ui.components.BobbingHint
 import com.example.invoicemaker.ui.components.EmptyState
@@ -47,14 +47,15 @@ private fun formatEstimateMoney(amount: BigDecimal): String =
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EstimatesScreen(
-    navController: NavController,
+    onAddEstimate: () -> Unit,
+    onEstimateClick: (EstimateUiModel) -> Unit,
     viewModel: EstimatesViewModel = viewModel()
 ) {
     var selectedFilter by remember { mutableStateOf<EstimateStatus?>(null) } // null = "All"
     var isSearchActive by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
 
-    val allEstimates: List<EstimateUiModel> = viewModel.estimates.collectAsState(initial = emptyList()).value
+    val allEstimates: List<EstimateUiModel> by viewModel.estimates.collectAsStateWithLifecycle()
 
     val filteredEstimates = allEstimates
         .filter { selectedFilter == null || it.status == selectedFilter }
@@ -82,9 +83,7 @@ fun EstimatesScreen(
                     BobbingHint(text = "Add your first estimate")
                     Spacer(modifier = Modifier.height(4.dp))
                 }
-                FloatingActionButton(onClick = {
-                    // TODO: navController.navigate("add_estimate")
-                }) {
+                FloatingActionButton(onClick = onAddEstimate) {
                     Icon(Icons.Default.Add, contentDescription = "Add Estimate")
                 }
             }
@@ -111,9 +110,10 @@ fun EstimatesScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     items(filteredEstimates, key = { it.id }) { estimate ->
-                        EstimateListItem(estimate = estimate, onClick = {
-                            // TODO: navController.navigate("estimate_detail/${estimate.id}")
-                        })
+                        EstimateListItem(
+                            estimate = estimate,
+                            onClick = { onEstimateClick(estimate) }
+                        )
                     }
                 }
             }
