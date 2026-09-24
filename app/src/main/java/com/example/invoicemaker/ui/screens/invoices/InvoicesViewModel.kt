@@ -53,7 +53,7 @@ class InvoicesViewModel(application: Application) : AndroidViewModel(application
         initialValue = emptyList()
     )
 
-    fun deleteInvoice(id: Long) {
+    fun delete(id: Long) {
         viewModelScope.launch { invoiceRepository.deleteInvoice(id) }
     }
 
