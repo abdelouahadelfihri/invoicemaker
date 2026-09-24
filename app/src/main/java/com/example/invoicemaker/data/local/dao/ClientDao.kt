@@ -3,6 +3,7 @@ package com.example.invoicemaker.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Delete
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
@@ -11,8 +12,8 @@ import com.example.invoicemaker.data.local.entity.Client
 @Dao
 interface ClientDao {
 
-    @Insert
-    suspend fun insertClient(client: Client)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertClient(client: Client): Long   // must return Long, not Unit
 
     @Update
     suspend fun updateClient(client: Client)
@@ -35,4 +36,7 @@ interface ClientDao {
 
     @Query("SELECT * FROM clients")
     fun observeAll(): Flow<List<Client>>
+
+    @Query("SELECT * FROM clients WHERE id = :id LIMIT 1")
+    suspend fun getClientById(id: Long): Client?
 }

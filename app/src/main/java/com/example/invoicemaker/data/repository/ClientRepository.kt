@@ -14,9 +14,12 @@ class ClientRepository(
     fun searchClients(query: String): Flow<List<Client>> =
         clientDao.searchClients(query)
 
-    suspend fun insertClient(client: Client) {
-        clientDao.insertClient(client)
-    }
+    suspend fun getClientById(id: Long): Client? =
+        clientDao.getClientById(id)
+
+    // CHANGED — now returns the new row id
+    suspend fun insertClient(client: Client): Long =
+        clientDao.insertClient(client)               // must return Long, not Unit
 
     suspend fun updateClient(client: Client) {
         clientDao.updateClient(client)
