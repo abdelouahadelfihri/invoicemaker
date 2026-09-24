@@ -1,4 +1,4 @@
-package com.example.invoicemaker.ui.screens.invoices
+package com.example.invoicemaker.ui.screens.estimates
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -51,7 +51,7 @@ class EstimatesViewModel(application: Application) : AndroidViewModel(applicatio
         initialValue = emptyList()
     )
 
-    fun deleteEstimate(id: Long) {
+    fun delete(id: Long) {
         viewModelScope.launch { estimateRepository.deleteById(id) }
     }
 
