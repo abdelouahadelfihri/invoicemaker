@@ -1,4 +1,4 @@
-package com.yourapp.ui.documentform
+package com.example.invoicemaker.ui.screens.invoices
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
@@ -16,6 +17,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.example.invoicemaker.ui.screens.documentform.GroupCard
+import com.example.invoicemaker.ui.screens.documentform.GroupDivider
+import com.example.invoicemaker.ui.screens.documentform.GroupRow
+import com.example.invoicemaker.ui.screens.documentform.ItemsAndTotalsSection
+import com.example.invoicemaker.ui.screens.documentform.PreviewSaveBar
+import com.example.invoicemaker.ui.screens.documentform.TemplateThumbnail
+import com.example.invoicemaker.ui.screens.invoices.InvoiceFormState
 
 /**
  * Edit screen for an existing invoice. Same layout as AddInvoiceScreen -
@@ -24,6 +32,7 @@ import androidx.compose.ui.unit.dp
  * from the add screen are the "Edit invoice" title, a delete action in the
  * top bar, and the bottom button reading "Update" instead of "Save".
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateInvoiceScreen(
     state: InvoiceFormState,
